@@ -75,6 +75,9 @@ def main(n):
     #webcam
     dc = DepthCamera()
 
+    #list of threads
+    threads = []
+
     #hand detector
     detector = HandDetector(maxHands=n, detectionCon=0.8)
 
@@ -89,11 +92,14 @@ def main(n):
         #land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
             for i in range(len(hands)):
-                sendData(hands[i],sockets[i],depth_frame,height,saps[i])
+                t = threading.Thread(target=sendData, args=(hands[i],sockets[i],depth_frame,height,saps[i]))
+                t.start()
+                threads.append(t)
             #cv2.circle(color_frame, loc, 4, (255,0,0))
             #cv2.putText(color_frame, "{}cm".format(dist), (loc), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,0), 2)
 
-
+        for t in threads:
+            t.join()
         #cv2.imshow("Image", color_frame)
         #key = cv2.waitKey(1)
 
