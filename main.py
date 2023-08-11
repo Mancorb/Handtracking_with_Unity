@@ -48,8 +48,8 @@ def setSocket(port):
     serverPort = ("127.0.0.1", port)
     return sk,serverPort
 
-def sendData(hand,sk,data,depth_frame,height,SAP):
-    
+def sendData(hand,sk,depth_frame,height,SAP):
+    data = []
     #get landmark list
     lmlst = hand["lmList"]
     loc = hand["center"]
@@ -78,12 +78,6 @@ def main(n):
     #hand detector
     detector = HandDetector(maxHands=n, detectionCon=0.8)
 
-    #A list for each hand data given to a seperate thread
-    data=[[],[],[],[]]
-
-    #list of different threads for the hands
-    threads = []
-
     while True:
         #get the frame
         ret, depth_frame, color_frame = dc.get_frame()
@@ -95,17 +89,10 @@ def main(n):
         #land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
             for i in range(len(hands)):
-                t = threading.Thread(target = sendData,
-                                                args = (hands[i],sockets[i],
-                                                        data[i],depth_frame,height,saps[i]))
-                t.start()
-                threads.append(t)
+                sendData(hands[i],sockets[i],depth_frame,height,saps[i])
             #cv2.circle(color_frame, loc, 4, (255,0,0))
             #cv2.putText(color_frame, "{}cm".format(dist), (loc), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,0), 2)
-        
-        for t in threads:
-            t.join()
-        threads.clear()
+
 
         cv2.imshow("Image", color_frame)
         key = cv2.waitKey(1)
