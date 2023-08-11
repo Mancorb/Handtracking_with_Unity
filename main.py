@@ -62,6 +62,7 @@ def sendData(hand,sk,data,depth_frame,height,SAP):
         data.extend([lm[0],height - lm[1],lm[2],dist])
 
     sk.sendto(str.encode(str(data)), SAP)
+    #print(f"-----\nsent: {data}\nto:{SAP}")
 
 
 def main(n):
@@ -80,6 +81,7 @@ def main(n):
     #A list for each hand data given to a seperate thread
     data=[[],[],[],[]]
 
+    #list of different threads for the hands
     threads = []
 
     while True:
@@ -90,24 +92,25 @@ def main(n):
         hands, color_frame = detector.findHands(color_frame)
         
 
-        #land mark values = (x,y,z, overall depth) * 21 (total number of values we have)
+        #land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
-            for i in hands:
-                threads.append(threading.Thread(target = sendData,
+            for i in range(len(hands)):
+                t = threading.Thread(target = sendData,
                                                 args = (hands[i],sockets[i],
-                                                        data[i],depth_frame,height,saps[i])))
-                threads[i].start()
+                                                        data[i],depth_frame,height,saps[i]))
+                t.start()
+                threads.append(t)
             #cv2.circle(color_frame, loc, 4, (255,0,0))
             #cv2.putText(color_frame, "{}cm".format(dist), (loc), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,0), 2)
         
+        for t in threads:
+            t.join()
+        threads.clear()
+
         cv2.imshow("Image", color_frame)
         key = cv2.waitKey(1)
-        if key == 32:
 
-            if threads:
-                for i in range(len(threads)):
-                    threads[i].join()
-            
+        if key == 32:   
             break
 
 if __name__ == "__main__":
