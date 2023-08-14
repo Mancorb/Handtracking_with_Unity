@@ -100,11 +100,11 @@ def main(n):
 
         for t in threads:
             t.join()
-        #cv2.imshow("Image", color_frame)
-        #key = cv2.waitKey(1)
+        cv2.imshow("Image", color_frame)
+        key = cv2.waitKey(1)
 
-        #if key == 32:   
-        #    break
+        if key == 32:   
+            break
 
 if __name__ == "__main__":
-    main(2)
+    main(3)
