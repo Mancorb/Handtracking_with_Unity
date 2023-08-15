@@ -15,7 +15,6 @@ class DepthCamera:
         pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
         pipeline_profile = config.resolve(pipeline_wrapper)
         device = pipeline_profile.get_device()
-        device_product_line = str(device.get_info(rs.camera_info.product_line))
 
         config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
         config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
@@ -26,6 +25,10 @@ class DepthCamera:
         self.pipeline.start(config)
 
     def get_frame(self):
+        """Obtain the frames from the camara's perspective.
+        Returns:
+            frame: depth perspective and color image perspective
+        """
         frames = self.pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
         color_frame = frames.get_color_frame()
@@ -35,9 +38,6 @@ class DepthCamera:
         if not depth_frame or not color_frame:
             return False, None, None
         return True, depth_image, color_image
-
-    def release(self):
-        self.pipeline.stop()
 
 def getDistance(points,frame, prev_dist = None):
     """Obtain the location of the middle point of the registered hand
@@ -62,6 +62,14 @@ def getDistance(points,frame, prev_dist = None):
     return dist,[x,y],prev_dist
 
 def socketList(n):
+    """Create n ammount of UDP sockets
+
+    Args:
+        n (int): number of sockets to create
+
+    Returns:
+        list tuple: socket and port lists
+    """
     #List of udp connections
     SKs =[]
     SAPs = []
@@ -83,62 +91,58 @@ def setSocket(port):
     serverPort = ("127.0.0.1", port)
     return sk,serverPort
 
-def sendData(hand,sk,depth_frame,height,SAP):
-    data = []
-    #get landmark list
-    lmlst = hand["lmList"]
-    loc = hand["center"]
+def sendData(hand,sk,depth_frame,SAP):
+    """Send location information of the corresponding port
+
+    Args:
+        hand (list): list of data collected by the cv2 handtracking algorithim of one hand
+        sk (socket): corresponding UDP socket to send info to UNITY
+        depth_frame (frame): single fram with depth info from the camera
+        height (int): hight of the frame to analize
+        SAP (socket): socket's corresponding port
+    """
+    height = 1200 #Height used to invert the Y axis for unity
+    data = [] #List to store the hand points and depth information
+    #Get landmark list
+    lmlst = hand["lmList"] #List of hand landmarks
+    loc = hand["center"] #Obtain the location of the center of the hand
     
-    #get the estimated distence of the center of the hand from the camera            
-    dist = int((depth_frame[loc[1],loc[0]])/1)
+    dist = int((depth_frame[loc[1],loc[0]])/1) #Get the estimated distence of the center of the hand from the camera            
     
     for lm in lmlst:
-        #Save the data with the oposite value since unity saves data oposite to open cv
-        data.extend([lm[0],height - lm[1],lm[2],dist])
+        data.extend([lm[0],height - lm[1],lm[2],dist]) #Save the data with the oposite value since unity saves data oposite to open cv
 
     sk.sendto(str.encode(str(data)), SAP)
     #print(f"-----\nsent: {data}\nto:{SAP}")
 
-def main(n):
-    #Parameters
-    height = 1200
+def main(n,image=None,):
+    sockets,saps = socketList(n) #Obtain list of sockets and server add ports
 
-    #Obtain list of sockets and server add ports
-    sockets,saps = socketList(n)
+    dc = DepthCamera() #webcam access object
 
-    #webcam
-    dc = DepthCamera()
+    threads = []#list of threads for each hand
 
-    #list of threads
-    threads = []
-
-    #hand detector
-    detector = HandDetector(maxHands=n, detectionCon=0.8)
+    detector = HandDetector(maxHands=n, detectionCon=0.8) #Hand detector
 
     while True:
-        #get the frame
-        ret, depth_frame, color_frame = dc.get_frame()
-
-        #get the hands
-        hands, color_frame = detector.findHands(color_frame)
+        ret, depth_frame, color_frame = dc.get_frame() #get the frame objects
         
+        hands, color_frame = detector.findHands(color_frame) #get the hands info list
 
         #land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
             for i in range(len(hands)):
-                t = threading.Thread(target=sendData, args=(hands[i],sockets[i],depth_frame,height,saps[i]))
+                #For each hand detected send the data with a socket from the list.
+                t = threading.Thread(target=sendData, args=(hands[i],sockets[i],depth_frame,saps[i]))
                 t.start()
                 threads.append(t)
-            #cv2.circle(color_frame, loc, 4, (255,0,0))
-            #cv2.putText(color_frame, "{}cm".format(dist), (loc), cv2.FONT_HERSHEY_PLAIN, 1, (0,0,0), 2)
 
-        for t in threads:
-            t.join()
-        cv2.imshow("Image", color_frame)
+        for t in threads: t.join() #Join all the threads
+
+        if image: cv2.imshow("Image", color_frame) #show the current image of the camera
+
         key = cv2.waitKey(1)
-
-        if key == 32:   
-            break
+        if key == 32: break #close program if SPACEBAR is pressed
 
 if __name__ == "__main__":
-    main(3)
+    main(4)
