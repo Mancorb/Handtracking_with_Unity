@@ -107,13 +107,17 @@ def sendData(hand,sk,depth_frame,SAP):
     lmlst = hand["lmList"] #List of hand landmarks
     loc = hand["center"] #Obtain the location of the center of the hand
     
+    if loc[1] > 480:
+        loc[1] = 479
+    if loc[0] >479:
+        loc[0]=479
+
     dist = int((depth_frame[loc[1],loc[0]])/1) #Get the estimated distence of the center of the hand from the camera            
     
     for lm in lmlst:
         data.extend([lm[0],height - lm[1],lm[2],dist]) #Save the data with the oposite value since unity saves data oposite to open cv
 
     sk.sendto(str.encode(str(data)), SAP)
-    #print(f"-----\nsent: {data}\nto:{SAP}")
 
 def main(n,image=None,):
     sockets,saps = socketList(n) #Obtain list of sockets and server add ports
@@ -123,12 +127,14 @@ def main(n,image=None,):
     threads = []#list of threads for each hand
 
     detector = HandDetector(maxHands=n, detectionCon=0.8) #Hand detector
+    print("Bootup complete, looking for hands...")
 
     while True:
         ret, depth_frame, color_frame = dc.get_frame() #get the frame objects
         
         hands, color_frame = detector.findHands(color_frame) #get the hands info list
 
+        print(f"\rTracking {len(hands)}, hands.", end="")
         #land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
             for i in range(len(hands)):
@@ -143,6 +149,8 @@ def main(n,image=None,):
 
         key = cv2.waitKey(1)
         if key == 32: break #close program if SPACEBAR is pressed
+    print("\nProcess aborted...")
 
 if __name__ == "__main__":
-    main(4)
+    main(2,True)
+    print("Ending program")
