@@ -91,15 +91,15 @@ def setSocket(port):
     serverPort = ("127.0.0.1", port)
     return sk,serverPort
 
-def sendData(hand,sk,depth_frame,SAP):
-    """Send location information of the corresponding port
+def saveData(hand,depth_frame,name,n):
+    """Record hand point location and overall distance from camera to a specific file in a corresponding file.
+    As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not overwhelm the storage.
 
     Args:
-        hand (list): list of data collected by the cv2 handtracking algorithim of one hand
-        sk (socket): corresponding UDP socket to send info to UNITY
-        depth_frame (frame): single fram with depth info from the camera
-        height (int): hight of the frame to analize
-        SAP (socket): socket's corresponding port
+        hand (list): list of info of the selected hand
+        depth_frame (frame): image frame of camera depth perseption
+        name (string): name of the Folder to safe the file to
+        n (int): iteration of the file
     """
     height = 1200 #Height used to invert the Y axis for unity
     data = [] #List to store the hand points and depth information
@@ -114,41 +114,47 @@ def sendData(hand,sk,depth_frame,SAP):
 
     dist = int((depth_frame[loc[1],loc[0]])/1) #Get the estimated distence of the center of the hand from the camera            
     
-    for lm in lmlst:
-        data.extend([lm[0],height - lm[1],lm[2],dist]) #Save the data with the oposite value since unity saves data oposite to open cv
+    location = f"./Hand_{name}/[{n}].txt" #Hand_A/[0]
 
-    sk.sendto(str.encode(str(data)), SAP)
+    with open(location,"w") as file: #save the info in the corresponding file
+        for lm in lmlst:
+            file.write(f"{lm[0]},{height - lm[1]},{lm[2]}\n")
+            file.write(str(dist))
 
 def main(n,image=None,):
-    sockets,saps = socketList(n) #Obtain list of sockets and server add ports
-
     dc = DepthCamera() #webcam access object
-
     threads = []#list of threads for each hand
+    detector = HandDetector(maxHands=n, detectionCon=0.8) #Hand detector object
+    counter = 0 #File counter
+    FILES=["A","B","C","D"]#Folder names
+    LIMIT = 20
 
-    detector = HandDetector(maxHands=n, detectionCon=0.8) #Hand detector
     print("Bootup complete, looking for hands...")
 
     while True:
         ret, depth_frame, color_frame = dc.get_frame() #get the frame objects
-        
         hands, color_frame = detector.findHands(color_frame) #get the hands info list
-
         print(f"\rTracking {len(hands)}, hands.", end="")
+
         #land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
             for i in range(len(hands)):
-                #For each hand detected send the data with a socket from the list.
-                t = threading.Thread(target=sendData, args=(hands[i],sockets[i],depth_frame,saps[i]))
+                #For each hand detected store the data
+                t = threading.Thread(target=saveData, args=(hands[i],depth_frame,
+                                                            FILES[i],counter))
                 t.start()
                 threads.append(t)
 
         for t in threads: t.join() #Join all the threads
-
-        if image: cv2.imshow("Image", color_frame) #show the current image of the camera
+        
+        counter +=1
+        #Reset counter when it reaches the limit to start replaceing old files
+        if counter > LIMIT: counter = 0
+        #Show the current image of the camera
+        if image: cv2.imshow("Image", color_frame)
 
         key = cv2.waitKey(1)
-        if key == 32: break #close program if SPACEBAR is pressed
+        if key == 32: break #Close program if SPACEBAR is pressed
     print("\nProcess aborted...")
 
 if __name__ == "__main__":
