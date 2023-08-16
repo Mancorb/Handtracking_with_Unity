@@ -125,8 +125,8 @@ def main(n,image=None,):
     dc = DepthCamera() #webcam access object
     threads = []#list of threads for each hand
     detector = HandDetector(maxHands=n, detectionCon=0.8) #Hand detector object
-    counter = 0 #File counter
-    FILES=["A","B","C","D"]#Folder names
+    #The first 4 elements in the dictionary are the names of the files and the last 4 elements of dictionary are numbers used to obtain the names of the first 4 elements of the diccionary as if it were a list
+    files={"A":0,"B":0,"C":0,"D":0,0:"A",1:"B",2:"C",3:"D"}#Folder names and # of files counters and a "list of all the dictionary options"
     LIMIT = 20
 
     print("Bootup complete, looking for hands...")
@@ -140,16 +140,19 @@ def main(n,image=None,):
         if hands:
             for i in range(len(hands)):
                 #For each hand detected store the data
-                t = threading.Thread(target=saveData, args=(hands[i],depth_frame,
-                                                            FILES[i],counter))
+                name = files[i]
+                t = threading.Thread(target=saveData,
+                                     args=(hands[i],depth_frame,
+                                           name,files[name]))
                 t.start()
                 threads.append(t)
+                #add one to the folder counter
+                files[name] += 1
+                #Reset counter when it reaches the limit to start replaceing old files
+                if files[name] > LIMIT: files[name] = 0
 
         for t in threads: t.join() #Join all the threads
         
-        counter +=1
-        #Reset counter when it reaches the limit to start replaceing old files
-        if counter > LIMIT: counter = 0
         #Show the current image of the camera
         if image: cv2.imshow("Image", color_frame)
 
@@ -158,5 +161,5 @@ def main(n,image=None,):
     print("\nProcess aborted...")
 
 if __name__ == "__main__":
-    main(2,True)
+    main(4,True)
     print("Ending program")
