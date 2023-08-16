@@ -105,11 +105,11 @@ def saveData(hand,depth_frame,name,n):
     data = [] #List to store the hand points and depth information
     #Get landmark list
     lmlst = hand["lmList"] #List of hand landmarks
-    loc = hand["center"] #Obtain the location of the center of the hand
+    loc = list(hand["center"]) #Obtain the location of the center of the hand
     
     if loc[1] > 480:
         loc[1] = 479
-    if loc[0] >479:
+    if loc[0] > 479:
         loc[0]=479
 
     dist = int((depth_frame[loc[1],loc[0]])/1) #Get the estimated distence of the center of the hand from the camera            
@@ -119,7 +119,7 @@ def saveData(hand,depth_frame,name,n):
     with open(location,"w") as file: #save the info in the corresponding file
         for lm in lmlst:
             file.write(f"{lm[0]},{height - lm[1]},{lm[2]}\n")
-            file.write(str(dist))
+        file.write(str(dist))
 
 def main(n,image=None,):
     dc = DepthCamera() #webcam access object
