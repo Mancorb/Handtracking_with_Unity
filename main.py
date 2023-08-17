@@ -107,12 +107,15 @@ def saveData(hand,depth_frame,name,n):
     lmlst = hand["lmList"] #List of hand landmarks
     loc = list(hand["center"]) #Obtain the location of the center of the hand
     
-    if loc[1] > 480:
+    if loc[1] >= 480:
         loc[1] = 479
-    if loc[0] > 479:
-        loc[0]=479
+    if loc[0] >= 479:
+        loc[0]=478
 
-    dist = int((depth_frame[loc[1],loc[0]])/1) #Get the estimated distence of the center of the hand from the camera            
+    try:
+        dist = depth_frame[loc[1],loc[0]] #Get the estimated distence of the center of the hand from the camera            
+    except Exception as e:
+        print("Error")
     
     location = f"./Hand_{name}/[{n}].txt" #Hand_A/[0]
 
