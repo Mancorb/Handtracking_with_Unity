@@ -1,28 +1,41 @@
-import numpy as np
-import pandas as pd
-from PIL import Image
-def obtainData():
-    with open("deadpoints.txt","r") as f:
-        data =f.read()
-        lst = data.replace("(","").split(")")
+import cv2
+import time
+import os
+import HandTrackingModule as hm
 
-    for row in range(len(lst)):
-        x = lst[row]
-        x= x.split(",")
-        lst[row]=x
+wCam, hCam= 1280, 720
 
-    df = pd.DataFrame(lst,columns=["x","y"])
-    df["x"] = pd.to_numeric(df['x'], errors='coerce').fillna(0).astype(int)
-    df["y"] = pd.to_numeric(df['y'], errors='coerce').fillna(0).astype(int)
-    return df
+cap = cv2.VideoCapture(1)
 
-df= obtainData()
-width = df["x"].max()+1
-height = df["y"].max()+1
-img = Image.new(mode="1",size=(width,height))
+folderpath= "Hand_Images"
+lstDir = os.listdir(folderpath)
+OverlayLst = []
 
-for indx in df.index:
-    img.putpixel( (df["x"][indx], df["y"][indx]), 1)
+cap.set(3,wCam)
+cap.set(4,hCam)
+
+
+for imPath in lstDir:
+    image = cv2.imread(f"{folderpath}/{imPath}")
+    OverlayLst.append(image)
+
+pTime = 0
+while True:
+
+    success, img = cap.read()
+
+    #show hand image on screen
+    h, w, c = OverlayLst[0].shape
+    img[0:h, 0:w] = OverlayLst[0]
+
+    cTime = time.time()
+    fps = 1/(cTime-pTime)
+    pTime= cTime
+
+    cv2.putText(img, f"FPS: {int(fps)}", (400,70), cv2.FONT_HERSHEY_PLAIN,
+                3,(255,0,0),3)
+
+    cv2.imshow("Image", img)
     
-img.show()
-img.save("Blind spot.png")
+    if cv2.waitKey(1) == 32:
+        break
