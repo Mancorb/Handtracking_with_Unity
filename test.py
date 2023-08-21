@@ -1,41 +1,40 @@
 import cv2
 import time
 import os
-import HandTrackingModule as hm
+import HandTrackingModule as htm
 
 wCam, hCam= 1280, 720
 
 cap = cv2.VideoCapture(1)
 
-folderpath= "Hand_Images"
-lstDir = os.listdir(folderpath)
-OverlayLst = []
 
 cap.set(3,wCam)
 cap.set(4,hCam)
 
+detector = htm.handDetector(detectionCon= 1)
 
-for imPath in lstDir:
-    image = cv2.imread(f"{folderpath}/{imPath}")
-    OverlayLst.append(image)
-
-pTime = 0
 while True:
-
+    fingers = {"index":False,"middle":False,"ring":False,"pinky":False, "thumb":False}
     success, img = cap.read()
+    img = detector.findHands(img)
+    lmList = detector.findPosition(img,draw=False)
+    
+    if len(lmList)!=0:
+        if lmList[8][2] < lmList[6][2]:
+            fingers["index"] = True
+        if lmList[12][2] < lmList[10][2]:
+            fingers["middle"] = True
+        if lmList[16][2] < lmList[14][2]:
+            fingers["ring"] = True
+        if lmList[20][2] < lmList[18][2]:
+            fingers["pinky"] = True
+        if lmList[4][1]>lmList[3][1]:
+            fingers["thumb"] = True
 
-    #show hand image on screen
-    h, w, c = OverlayLst[0].shape
-    img[0:h, 0:w] = OverlayLst[0]
-
-    cTime = time.time()
-    fps = 1/(cTime-pTime)
-    pTime= cTime
-
-    cv2.putText(img, f"FPS: {int(fps)}", (400,70), cv2.FONT_HERSHEY_PLAIN,
-                3,(255,0,0),3)
 
     cv2.imshow("Image", img)
+
+    print(f"\rIndex:{fingers['index']}\tMiddle:{fingers['middle']}\tRing:{fingers['ring']}\tPinky:{fingers['pinky']}\tThumb:{fingers['thumb']}",end = "")
     
     if cv2.waitKey(1) == 32:
         break
