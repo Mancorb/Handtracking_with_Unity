@@ -1,4 +1,6 @@
 import cv2
+import time
+import os
 import HandTrackingModule as htm
 
 wCam, hCam= 1280, 720
