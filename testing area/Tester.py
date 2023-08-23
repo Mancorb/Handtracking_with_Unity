@@ -16,7 +16,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
-labels_dict = {0: "right L", 1: "right pinch", 2: "right point", 3: "right C", 4:"right two pointer"}
+labels_dict = {0: "one finger", 1: "right pinch", 2: "two fingers"}
 
 while True:
     data_aux = []
