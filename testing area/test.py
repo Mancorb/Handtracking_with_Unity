@@ -1,22 +1,6 @@
 import cv2
 import HandTrackingModule as htm
-from os import system
 
-def middle(x1,x2,y1,y2):
-    """Estimate the middle point between two points
-
-    Args:
-        x1 (int): locaiton x of the first point
-        x2 (int): location x of the second point
-        y1 (int): location y of the first point
-        y2 (int): location y of the second point
-
-    Returns:
-        tuple: the estimated x and y location of the middle point.
-    """
-    x = int((x1+x2)/2)
-    y = int((y1+y2)/2)
-    return x,y
 
 def isInside(circle_x, circle_y, rad, x, y):
     """Find of a point is inside an estimated circle
@@ -51,13 +35,13 @@ def FingerStraight(x1,x2,y1,y2,tx,ty):
         ty (int): location y of the middle bone of the finger
     """
     rad = 20
-    x,y= middle(x1,x2,y1,y2)
+    x,y= (lambda x1,x2,y1,y2: (int((x1+x2)/2),int((y1+y2)/2))) (x1,x2,y1,y2) #Estimate the middle point between two points
+
     mid =isInside(x,y,rad,tx,ty)
     base = isInside(x,y,rad,x1,y1)
     tip = isInside(x,y,rad,x2,y2)
     
     if mid and not base and not tip:
-        #img = cv2.circle(img, middle(x1,x2,y1,y2), rad, color=(0, 0, 255), thickness=1)
         return True
     
 
@@ -70,10 +54,10 @@ cap.set(4,hCam)
 detector = htm.handDetector(detectionCon= 1)
             #(tip, bottom, middle)
 finger_loc = [(8,5,6),(12,9,10),(16,13,14),(20,17,18)]
-# for the thumb just check if the middle part of the thumb is near the base of the index finger
+#For the thumb just check if the middle part of the thumb is near the base of the index finger
 
 while True:
-    fingers = [False,False,False,False,False]
+    fingers = [False,False,False,False,True]
     success, img = cap.read()
     img = detector.findHands(img)
     lmList = detector.findPosition(img,draw=False)
@@ -92,10 +76,19 @@ while True:
                 
             counter += 1
 
+        #look for the thumb
+        x1 = lmList[5][1]
+        y1 = lmList[5][2]
+        tx,ty = lmList[3][1],lmList[3][2]
+
+        if isInside(x1,y1,30,tx,ty):
+            img = cv2.circle(img,(x1,y1),radius=10,color=(0,0,255),thickness=1)
+            fingers[counter] = False
+
+
     cv2.imshow("Image", img)
 
     print(fingers)
-    system("cls")
-    
+
     if cv2.waitKey(1) == 32:
         break
