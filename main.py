@@ -91,7 +91,8 @@ def setSocket(port):
 
 def saveData(hand,depth_frame,name,n):
     """Record hand point location and overall distance from camera to a specific file in a corresponding file.
-    As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not overwhelm the storage.
+    As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not
+    overwhelm the storage.
 
     Args:
         hand (list): list of info of the selected hand
@@ -117,7 +118,7 @@ def saveData(hand,depth_frame,name,n):
     
     location = f"./Hand_{name}/[{n}].txt" #Hand_A/[0]
 
-    with open(location,"w") as file: #save the info in the corresponding file
+    with open(location,"w") as file: #Save the info in the corresponding file
         for lm in lmlst:
             file.write(f"{lm[0]},{height - lm[1]},{lm[2]}\n")
         file.write(str(dist))
