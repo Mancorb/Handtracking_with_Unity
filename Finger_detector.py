@@ -115,14 +115,16 @@ def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bo
     """
 
     #if index is contracted and the tumb is not contracted
-    if index and not thumb:
+    if (index == True and thumb == False):
         return False
     
-    d1 = dist_2_points(x1,x3,y1,y3) #distance between point 4 and 3
+    d1 = dist_2_points(x1,x3,y1,y3) #Distance between point 4 and 3
     d2 = dist_2_points(x1,x2,y1,y2) #Distance between point 4 and 8
 
     if d1>d2:
         return True
+    
+    return False
     
 
 
@@ -135,6 +137,7 @@ def finger_detector(locations, detect, camara, show = False):
         img = detect.findHands(camara.read()[1])
         lmList = detect.findPosition(img,draw=False)#hand points
         counter = 0
+        pinch = False
 
         if len(lmList)!=0:
             for i in locations:
@@ -160,10 +163,17 @@ def finger_detector(locations, detect, camara, show = False):
                 cv2.line(img, (hand_x,hand_y), (thumb_x,thumb_y), color=(0,255,0), thickness=1)
                 cv2.circle(img, middle(hand_x,thumb_x,hand_y,thumb_y), radius=35, color=(255, 0, 0), thickness=1)
 
+            
+            pinch = detect_pinch(lmList[4][1],lmList[4][2],
+                                 lmList[8][1],lmList[8][2],
+                                 lmList[3][1],lmList[3][2],
+                                 fingers[0],
+                                 fingers[-1])
+
 
         cv2.imshow("Image", img)
 
-        print(f"{fingers}")
+        print(f"{fingers} Pinch: {pinch}")
 
         if cv2.waitKey(1) == 32:
             break
