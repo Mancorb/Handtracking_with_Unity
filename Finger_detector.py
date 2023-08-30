@@ -127,8 +127,6 @@ def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bo
 
 
 def finger_detector(locations, detect, camara, show = False):
-
-
     while True:
         #[Index,middle,ring,pinky,thumb]
         fingers = [False,False,False,False,False] #True = finger is extended
@@ -156,11 +154,6 @@ def finger_detector(locations, detect, camara, show = False):
             hand_y, thumb_y=lmList[5][2],lmList[3][2] #same but y location
             
             fingers[-1] = thumb_contracted(hand_x,hand_y,thumb_x,thumb_y) #assign result to the array
-
-            if show and not fingers[-1]:#Draw line between point 5 and 3 as well as a circle in the middle point to see if it is contracted or not
-                cv2.line(img, (hand_x,hand_y), (thumb_x,thumb_y), color=(0,255,0), thickness=1)
-                cv2.circle(img, middle(hand_x,thumb_x,hand_y,thumb_y), radius=35, color=(255, 0, 0), thickness=1)
-
             
             pinch = detect_pinch(lmList[4][1],lmList[4][2],
                                  lmList[8][1],lmList[8][2],
@@ -168,10 +161,11 @@ def finger_detector(locations, detect, camara, show = False):
                                  fingers[0],
                                  fingers[-1])
 
-
-        cv2.imshow("Image", img)
-
-        print(f"{fingers} Pinch: {pinch}")
+        if show and not fingers[-1]:#Draw line between point 5 and 3 as well as a circle in the middle point to see if it is contracted or not
+            cv2.line(img, (hand_x,hand_y), (thumb_x,thumb_y), color=(0,255,0), thickness=1)
+            cv2.circle(img, middle(hand_x,thumb_x,hand_y,thumb_y), radius=35, color=(255, 0, 0), thickness=1)
+            cv2.imshow("Image", img)
+            print(f"{fingers} Pinch: {pinch}")
 
         if cv2.waitKey(1) == 32:
             break
