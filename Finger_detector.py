@@ -115,14 +115,12 @@ def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bo
     """
 
     #if index is contracted and the tumb is not contracted
-    if (index == True and thumb == False):
-        return False
-    
-    d1 = dist_2_points(x1,x3,y1,y3) #Distance between point 4 and 3
-    d2 = dist_2_points(x1,x2,y1,y2) #Distance between point 4 and 8
+    if (not index and thumb):
+        d1 = dist_2_points(x1,x3,y1,y3) #Distance between point 4 and 3
+        d2 = dist_2_points(x1,x2,y1,y2) #Distance between point 4 and 8
 
-    if d1>d2:
-        return True
+        if d1>d2:
+            return True
     
     return False
     
