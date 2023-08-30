@@ -1,6 +1,6 @@
-import cv2
-import HandTrackingModule as htm
 from math import sqrt,pow
+
+
 
 def middle(x1:int,x2:int,y1:int,y2:int):
     """Estimate the middle point between two points
@@ -124,60 +124,52 @@ def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bo
     
     return False
     
+def finger_detector(lmList):
+    """Return a tuple, first element is a list of bools indicating if a fingers is contracted based on it's location
+    The Second element is a bool indicating if the hand is pinching.
 
+    Args:
+        lmList (array): Array of id,location x, location y of a specific point in fhte hand.
 
-def finger_detector(locations, detect, camara, show = False):
-    while True:
-        #[Index,middle,ring,pinky,thumb]
-        fingers = [False,False,False,False,False] #True = finger is extended
-        img = detect.findHands(camara.read()[1])
-        lmList = detect.findPosition(img,draw=False)#hand points
-        counter = 0
-        pinch = False
+    Returns:
+        tuple: tuple with detected results
+    """
+    #id of each finger and their parts
+    #[index finger, middle finger, ring finger, pinky, thumb]
+    #(tip, bottom, middle)
+    locations = [(8,5,6),(12,9,10),(16,13,14),(20,17,18)]
 
-        if len(lmList)!=0:
-            for i in locations:
-                #[(tip, bottom, middle)]
-                x1,x2 =lmList[i[0]][1],lmList[i[1]][1]
-                y1,y2 =lmList[i[0]][2],lmList[i[1]][2]
-                tx,ty =lmList[i[2]][1],lmList[i[2]][2]
+    #[Index,middle,ring,pinky,thumb]
+    fingers = [False,False,False,False,False] #True = finger is extended
+    counter = 0
+    pinch = False
 
-                #verify if the finger is straight
-                if  show: cv2.circle(img, middle(x1,x2,y1,y2), radius=20, color=(0, 255, 0), thickness=1)#draw the range
-                
-                fingers[counter] = FingerStraight(x1,x2,y1,y2,tx,ty)
+    if len(lmList)!=0:
+        for i in locations:
+            #[(tip, bottom, middle)]
+            x1,x2 =lmList[i[0]][1],lmList[i[1]][1]
+            y1,y2 =lmList[i[0]][2],lmList[i[1]][2]
+            tx,ty =lmList[i[2]][1],lmList[i[2]][2]
+   
+            fingers[counter] = FingerStraight(x1,x2,y1,y2,tx,ty)
 
-                counter += 1
+            counter += 1
         
-            #Check for the thumb
-            hand_x, thumb_x=lmList[5][1],lmList[3][1] #Location x of point 5, location x of point 3
-            hand_y, thumb_y=lmList[5][2],lmList[3][2] #same but y location
+        #Check for the thumb
+        hand_x, thumb_x=lmList[5][1],lmList[3][1] #Location x of point 5, location x of point 3
+        hand_y, thumb_y=lmList[5][2],lmList[3][2] #same but y location
             
-            fingers[-1] = thumb_contracted(hand_x,hand_y,thumb_x,thumb_y) #assign result to the array
+        fingers[-1] = thumb_contracted(hand_x,hand_y,thumb_x,thumb_y) #assign result to the array
             
-            pinch = detect_pinch(lmList[4][1],lmList[4][2],
-                                 lmList[8][1],lmList[8][2],
-                                 lmList[3][1],lmList[3][2],
-                                 fingers[0],
-                                 fingers[-1])
+        pinch = detect_pinch(lmList[4][1],lmList[4][2],
+                             lmList[8][1],lmList[8][2],
+                             lmList[3][1],lmList[3][2],
+                             fingers[0],
+                             fingers[-1])
+        
+    return (fingers,pinch)
 
-        if show and not fingers[-1]:#Draw line between point 5 and 3 as well as a circle in the middle point to see if it is contracted or not
-            cv2.line(img, (hand_x,hand_y), (thumb_x,thumb_y), color=(0,255,0), thickness=1)
-            cv2.circle(img, middle(hand_x,thumb_x,hand_y,thumb_y), radius=35, color=(255, 0, 0), thickness=1)
-            cv2.imshow("Image", img)
-            print(f"{fingers} Pinch: {pinch}")
+            
 
-        if cv2.waitKey(1) == 32:
-            break
-
-wCam, hCam= 1280, 720
-
-cap = cv2.VideoCapture(1)
-cap.set(3,wCam)
-cap.set(4,hCam)
-
-detector = htm.handDetector(detectionCon= 1)
-            #(tip, bottom, middle)
-finger_loc = [(8,5,6),(12,9,10),(16,13,14),(20,17,18)]
-
-finger_detector(finger_loc,detector,cap, False)
+#detector = htm.handDetector(detectionCon= 1)
+#finger_detector(finger_loc,detector)
