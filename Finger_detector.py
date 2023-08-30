@@ -82,6 +82,50 @@ def thumb_contracted(hand_x, hand_y, thumb_x, thumb_y):
     x,y = middle(hand_x,thumb_x,hand_y,thumb_y)
     return not isInside(x,y,rad,thumb_x,thumb_y)
 
+def dist_2_points(x1:int, x2:int, y1:int, y2:int):
+    """This method returns the distance between two points.
+
+    Args:
+        x1 (int): location x of first point
+        x2 (int): location x of second point
+        y1 (int): location y of first point
+        y2 (int): location y of second point
+
+    Returns:
+        int: result as an int
+    """
+    # _/ (x2-x1)*2 + (y2-y1)*2
+    return sqrt(pow((x2-x1),2) + pow((y2-y1),2))
+
+def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bool):
+    """Detect if the hand is pitching based on the distance of the thumb and the index finger
+
+    Args:
+        x1 (int): x location of the tip of the thumb
+        y1 (int): location y of the tip of the thumb
+        x2 (int): location x of the tip of the index
+        y2 (int): location y of the tip of the index
+        x3 (int): location x of the middle point of the thumb
+        y3 (int): location y of the middle point of the thumb
+        index (bool): True, finger is extended
+        thumb (bool): True, the thumb is not contracted
+
+    Returns:
+        bool: True, user is pinching
+    """
+
+    #if index is contracted and the tumb is not contracted
+    if index and not thumb:
+        return False
+    
+    d1 = dist_2_points(x1,x3,y1,y3) #distance between point 4 and 3
+    d2 = dist_2_points(x1,x2,y1,y2) #Distance between point 4 and 8
+
+    if d1>d2:
+        return True
+    
+
+
 def finger_detector(locations, detect, camara, show = False):
 
 
@@ -123,7 +167,6 @@ def finger_detector(locations, detect, camara, show = False):
 
         if cv2.waitKey(1) == 32:
             break
-
 
 wCam, hCam= 1280, 720
 
