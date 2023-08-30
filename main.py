@@ -1,41 +1,9 @@
-import pyrealsense2 as rs
-import numpy as np
 import cv2
 from cvzone.HandTrackingModule import HandDetector
 import socket
 import threading
-
-class DepthCamera:
-    def __init__(self):
-        # Configure depth and color streams
-        self.pipeline = rs.pipeline()
-        config = rs.config()
-
-        # Get device product line for setting a supporting resolution
-        pipeline_wrapper = rs.pipeline_wrapper(self.pipeline)
-        pipeline_profile = config.resolve(pipeline_wrapper)
-        device = pipeline_profile.get_device()
-
-        config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-        config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-
-        # Start streaming
-        self.pipeline.start(config)
-
-    def get_frame(self):
-        """Obtain the frames from the camara's perspective.
-        Returns:
-            frame: depth perspective and color image perspective
-        """
-        frames = self.pipeline.wait_for_frames()
-        depth_frame = frames.get_depth_frame()
-        color_frame = frames.get_color_frame()
-
-        depth_image = np.asanyarray(depth_frame.get_data())
-        color_image = np.asanyarray(color_frame.get_data())
-        if not depth_frame or not color_frame:
-            return False, None, None
-        return True, depth_image, color_image
+import Finger_detector as fd
+import DepthCamera as dca
 
 def getDistance(points,frame, prev_dist = None):
     """Obtain the location of the middle point of the registered hand
@@ -123,15 +91,17 @@ def saveData(hand,depth_frame,name,n):
             file.write(f"{lm[0]},{height - lm[1]},{lm[2]}\n")
         file.write(str(dist))
 
-def main(n,image=None,):
-    dc = DepthCamera() #webcam access object
-    threads = []#list of threads for each hand
+def main(n,LIMIT=500,image=None):
+    dc = dca() #Depth camara access object
+
+    threads = []#List of threads for each hand
+
     detector = HandDetector(maxHands=n, detectionCon=0.8) #Hand detector object
+
     #The first 4 elements in the dictionary are the names of the files and the last 4 elements of dictionary are numbers used to obtain the names of the first 4 elements of the diccionary as if it were a list
     files={"A":0,"B":0,"C":0,"D":0,0:"A",1:"B",2:"C",3:"D"}#Folder names and # of files counters and a "list of all the dictionary options"
-    LIMIT = 20
 
-    print("Bootup complete, looking for hands...")
+    print("=============\nBootup complete, looking for hands...\n=============\n")
 
     while True:
         ret, depth_frame, color_frame = dc.get_frame() #get the frame objects
@@ -163,5 +133,5 @@ def main(n,image=None,):
     print("\nProcess aborted...")
 
 if __name__ == "__main__":
-    main(4,True)
+    main(4,100,True)
     print("Ending program")
