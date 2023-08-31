@@ -2,6 +2,7 @@ import pyrealsense2 as rs
 import numpy as np
 
 class DepthCamera:
+    
     def __init__(self):
         # Configure depth and color streams
         self.pipeline = rs.pipeline()
@@ -18,10 +19,13 @@ class DepthCamera:
         # Start streaming
         self.pipeline.start(config)
 
-    def get_frame(self):
-        """Obtain the frames from the camara's perspective.
+    
+    def get_frame(self) -> tuple:
+        """
+        Obtiene los frames desde la perspectiva de la cámara
+        
         Returns:
-            frame: depth perspective and color image perspective
+            frame(tupla): Perspectiva de profundidad y perspectiva de color de imagen
         """
         frames = self.pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
@@ -32,3 +36,4 @@ class DepthCamera:
         if not depth_frame or not color_frame:
             return False, None, None
         return True, depth_image, color_image
+
