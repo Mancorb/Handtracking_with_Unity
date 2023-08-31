@@ -91,6 +91,25 @@ def saveData(hand,depth_frame,name,n):
             file.write(f"{lm[0]},{height - lm[1]},{lm[2]}\n")
         file.write(str(dist))
 
+def filter_Hand_Info(hands:list):
+    """Extract only the location of the points of interes and the center of the hand
+
+    Args:
+        hands (list): original list of data from detected hands
+
+    Returns:
+        list: reduced list containing only list of points and location of the center
+    """
+    result = []
+    temp = {"lmList":None,"center":None}
+
+    for hand in hands:
+        temp["lmList"] = hand["lmList"]
+        temp["center"] = hand["center"]
+        result.append(temp)
+
+    return result
+
 def main(n,LIMIT=500,image=None):
     dc = dca.DepthCamera() #Depth camara access object
 
@@ -105,8 +124,11 @@ def main(n,LIMIT=500,image=None):
 
     while True:
         ret, depth_frame, color_frame = dc.get_frame() #get the frame objects
-        hands, color_frame = detector.findHands(color_frame) #get the hands info list
+        hands, color_frame = detector.findHands(color_frame) #get the hands info list        
         print(f"\rTracking {len(hands)}, hands.", end="")
+
+        #Filter the info
+        hands = filter_Hand_Info(hands)
 
         #land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
