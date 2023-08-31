@@ -92,7 +92,7 @@ def saveData(hand,depth_frame,name,n):
         file.write(str(dist))
 
 def main(n,LIMIT=500,image=None):
-    dc = dca() #Depth camara access object
+    dc = dca.DepthCamera() #Depth camara access object
 
     threads = []#List of threads for each hand
 
