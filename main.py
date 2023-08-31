@@ -57,6 +57,22 @@ def setSocket(port):
     serverPort = ("127.0.0.1", port)
     return sk,serverPort
 
+def location_Error_Filter (x,y):
+    """Reduce the location of x & y to avoid error
+
+    Args:
+        x (int): locaiton x of center
+        y (int): location y of center
+
+    Returns:
+        tuple: location x & y modified.
+    """
+    if x >= 480:
+        x = 479
+    if y >= 479:
+        y=478
+    return x,y
+
 def saveData(hand,depth_frame,name,n):
     """Record hand point location and overall distance from camera to a specific file in a corresponding file.
     As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not
@@ -72,15 +88,12 @@ def saveData(hand,depth_frame,name,n):
     data = [] #List to store the hand points and depth information
     #Get landmark list
     lmlst = hand["lmList"] #List of hand landmarks
-    loc = list(hand["center"]) #Obtain the location of the center of the hand
+    x,y = hand["center"] #Obtain the location of the center of the hand
     
-    if loc[1] >= 480:
-        loc[1] = 479
-    if loc[0] >= 479:
-        loc[0]=478
+    x,y = location_Error_Filter(x,y)
 
     try:
-        dist = depth_frame[loc[1],loc[0]] #Get the estimated distence of the center of the hand from the camera            
+        dist = depth_frame[x,y] #Get the estimated distence of the center of the hand from the camera            
     except Exception as e:
         print("Error")
     
