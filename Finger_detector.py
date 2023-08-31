@@ -2,7 +2,7 @@ from math import sqrt,pow
 
 class Finger_detector:
 
-    def fingerStraight(x1:int,x2:int,y1:int,y2:int,tx:int,ty:int,self) -> bool:
+    def fingerStraight(self, x1:int,x2:int,y1:int,y2:int,tx:int,ty:int) -> bool:
         """
         Obtiene el punto medio entre la localización de la punta del Metacarpo y la punta de la falange intermedia.
         Dibuja un círculo de un radio determinado en dicha localización.
@@ -32,7 +32,7 @@ class Finger_detector:
         else : return False
 
     
-    def thumb_contracted(hand_x, hand_y, thumb_x, thumb_y,self) -> bool:
+    def thumb_contracted(self, hand_x, hand_y, thumb_x, thumb_y) -> bool:
         """
         Dibuja un círculo entre la mano y el pulgar para detectar si el pulgar está extendido o no
 
@@ -50,7 +50,7 @@ class Finger_detector:
         return not self.isInside(x,y,rad,thumb_x,thumb_y)
 
 
-    def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bool,self) -> bool:
+    def detect_pinch(self, x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bool) -> bool:
         """
         Detecta si la mano está haciendo el gesto similar al de pellizco 
         basándose en la distancia entre el pulgar y el dedo índice
@@ -80,7 +80,7 @@ class Finger_detector:
         return False
 
     
-    def detect(lmList, self) -> tuple:
+    def detect(self, lmList) -> tuple:
         """
         Retorna una tupla, el 1er elemento es una lista de booleanos indicando si un dedo está contraido 
         basándose en su localización.
