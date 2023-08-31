@@ -24,13 +24,10 @@ class DepthCamera:
         # Start streaming
         self.pipeline.start(config)
 
-    
-    def get_frame(self) -> frame:
-        """
-        Obtener los frames desde la perspectiva de la cámara
-        
+    def get_frame(self):
+        """Obtain the frames from the camara's perspective.
         Returns:
-            frame: Perspectiva de profundidad y perspectiva de color de imagen 
+            frame: depth perspective and color image perspective
         """
         frames = self.pipeline.wait_for_frames()
         depth_frame = frames.get_depth_frame()
@@ -42,18 +39,15 @@ class DepthCamera:
             return False, None, None
         return True, depth_image, color_image
 
-
-def getDistance(points,frame, prev_dist = None) -> float:
-    """
-    Obtiene la localización del punto medio de la mano registrada
+def getDistance(points,frame, prev_dist = None):
+    """Obtain the location of the middle point of the registered hand
 
     Args:
-        puntos (list): Lista de puntos de los cuales obtener el punto medio 
-        frame (cv image): cv frame con info. en profundidad utilizada para localizar
-                          la profundidad del punto deseado
+        points (list): list of points to obtain the middle point from
+        frame (cv image): cv frame with info on depth used to locate depth of the desired point
 
     Returns:
-        float: Distancia estimada del medio de la mano 
+        float: Estimated distance of the middle of the hand 
     """
     
     x = 0
@@ -67,16 +61,14 @@ def getDistance(points,frame, prev_dist = None) -> float:
     dist = int((frame[x,y])/10)
     return dist,[x,y],prev_dist
 
-
-def socketList(n) -> list, tuple:
-    """
-    Crea una cantidad n de sockets UDP
+def socketList(n):
+    """Create n ammount of UDP sockets
 
     Args:
-        n (int): Núm. de sockets a crear
+        n (int): number of sockets to create
 
     Returns:
-        list, tupla: Listas de sockets y puertos
+        list tuple: socket and port lists
     """
     #List of udp connections
     SKs =[]
@@ -88,32 +80,26 @@ def socketList(n) -> list, tuple:
         SAPs.append(serverAddPort)
     return SKs,SAPs
 
-
-def setSocket(port) -> Socket, tuple:
-    """
-    Crea una conexión con un Socket UDP para transmitir datos a Unity
+def setSocket(port):
+    """Create a UDP Socket conection to transmit data to unity
 
     Returns:
-        socket,tupla: Puerto de socket y tupla con la IP y el puerto
+        socket,tuple: socket port and tuple with ip and port
     """
     sk = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     #port to send to (ip, port)
     serverPort = ("127.0.0.1", port)
     return sk,serverPort
 
-
-def sendData(hand,sk,depth_frame,SAP) -> void:
-    """
-    Envía información de localización del puerto correspondiente
+def sendData(hand,sk,depth_frame,SAP):
+    """Send location information of the corresponding port
 
     Args:
-        hand (list): Lista de datos recolectados de una mano 
-                     por parte del algoritmo cv2 handtracking 
-        sk (socket): Socket UDP correspondiente para enviar info a Unity
-        depth_frame (frame): Frame individual con la info. de 
-                             profundidad captada por la cámara
-        height (int): Altura del frame que se analizará 
-        SAP (socket): Puerto correspondiente del socket
+        hand (list): list of data collected by the cv2 handtracking algorithim of one hand
+        sk (socket): corresponding UDP socket to send info to UNITY
+        depth_frame (frame): single fram with depth info from the camera
+        height (int): hight of the frame to analize
+        SAP (socket): socket's corresponding port
     """
     height = 1200 #Height used to invert the Y axis for unity
     data = [] #List to store the hand points and depth information
@@ -162,7 +148,7 @@ def main(n,image=None,):
         if image: cv2.imshow("Image", color_frame) #show the current image of the camera
 
         key = cv2.waitKey(1)
-        if key == 32: break #cierra el pgorama si la barra espaciadora es presionada
+        if key == 32: break #close program if SPACEBAR is pressed
     print("\nProcess aborted...")
 
 if __name__ == "__main__":
