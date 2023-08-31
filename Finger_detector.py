@@ -1,44 +1,7 @@
 from math import sqrt,pow
 
 class Finger_detector:
-    
-    def middle(x1:int,x2:int,y1:int,y2:int) -> tuple:
-        """Estimar el punto medio entre dos puntos
-    
-        Args:
-            x1 (int): localización de x del 1er punto
-            x2 (int): localización de x del 2do punto
-            y1 (int): localización de y del 1er punto
-            y2 (int): localización de y del 2do punto
-    
-        Returns:
-            tupla: La localización aproximada de X y Y del punto medio.
-        """
-        x = int((x1+x2)/2)
-        y = int((y1+y2)/2)
-        return x,y
 
-    
-    def isInside(circle_x:int, circle_y:int, rad:int, x:int, y:int) -> bool:
-        """Encuentra el punto que está dentro de un círculo estimado
-    
-        Args:
-            circle_x (int): Localización de X del centro del círculo
-            circle_y (int): Localización de Y del centro del círculo
-            rad (int): Radio del círculo en píxeles
-            x (int): Localización de X del punto a encontrar
-            y (int): Localización de Y del punto a encontrar
-    
-        Returns:
-            bool: Si el punto está dentro del círculo entonces retornará True, de lo contratio retornará False
-        """
-        if ((x - circle_x) * (x - circle_x) +
-            (y - circle_y) * (y - circle_y) <= rad * rad):
-            return True
-        else:
-            return False
-
-    
     def fingerStraight(x1:int,x2:int,y1:int,y2:int,tx:int,ty:int,self) -> bool:
         """
         Obtiene el punto medio entre la localización de la punta del Metacarpo y la punta de la falange intermedia.
@@ -69,22 +32,6 @@ class Finger_detector:
         else : return False
 
     
-    def dist_2_points(x1:int, x2:int, y1:int, y2:int) -> int:
-        """Encuentra la distancia entre 2 puntos
-    
-        Args:
-            x1 (int): Localización de X del 1er punto
-            x2 (int): Localización de X del 2do punto
-            y1 (int): Localización de Y del 1er punto
-            y2 (int): Localización de Y del 2do punto
-    
-        Returns:
-            int: Resultado en formato de núm. entero
-        """
-        # _/ (x2-x1)*2 + (y2-y1)*2
-        return sqrt(pow((x2-x1),2) + pow((y2-y1),2))
-
-    
     def thumb_contracted(hand_x, hand_y, thumb_x, thumb_y,self) -> bool:
         """
         Dibuja un círculo entre la mano y el pulgar para detectar si el pulgar está extendido o no
@@ -101,8 +48,8 @@ class Finger_detector:
         rad = 35
         x,y = self.middle(hand_x,thumb_x,hand_y,thumb_y)
         return not self.isInside(x,y,rad,thumb_x,thumb_y)
-    
-    
+
+
     def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bool,self) -> bool:
         """
         Detecta si la mano está haciendo el gesto similar al de pellizco 
@@ -181,7 +128,60 @@ class Finger_detector:
             
         return (fingers,pinch)
 
-        
+    
+    def middle(x1:int,x2:int,y1:int,y2:int) -> tuple:
+        """Estimar el punto medio entre dos puntos
+    
+        Args:
+            x1 (int): localización de x del 1er punto
+            x2 (int): localización de x del 2do punto
+            y1 (int): localización de y del 1er punto
+            y2 (int): localización de y del 2do punto
+    
+        Returns:
+            tupla: La localización aproximada de X y Y del punto medio.
+        """
+        x = int((x1+x2)/2)
+        y = int((y1+y2)/2)
+        return x,y
+
+    
+    def isInside(circle_x:int, circle_y:int, rad:int, x:int, y:int) -> bool:
+        """Encuentra el punto que está dentro de un círculo estimado
+    
+        Args:
+            circle_x (int): Localización de X del centro del círculo
+            circle_y (int): Localización de Y del centro del círculo
+            rad (int): Radio del círculo en píxeles
+            x (int): Localización de X del punto a encontrar
+            y (int): Localización de Y del punto a encontrar
+    
+        Returns:
+            bool: Si el punto está dentro del círculo entonces retornará True, de lo contratio retornará False
+        """
+        if ((x - circle_x) * (x - circle_x) +
+            (y - circle_y) * (y - circle_y) <= rad * rad):
+            return True
+        else:
+            return False
+
+    
+    def dist_2_points(x1:int, x2:int, y1:int, y2:int) -> int:
+        """Encuentra la distancia entre 2 puntos
+    
+        Args:
+            x1 (int): Localización de X del 1er punto
+            x2 (int): Localización de X del 2do punto
+            y1 (int): Localización de Y del 1er punto
+            y2 (int): Localización de Y del 2do punto
+    
+        Returns:
+            int: Resultado en formato de núm. entero
+        """
+        # _/ (x2-x1)*2 + (y2-y1)*2
+        return sqrt(pow((x2-x1),2) + pow((y2-y1),2))
+
+
     #detector = htm.handDetector(detectionCon= 1)
     #finger_detector(finger_loc,detector)
     
