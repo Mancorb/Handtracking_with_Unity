@@ -5,36 +5,16 @@ import threading
 import Finger_detector as fd
 import DepthCamera as dca
 
-def getDistance(points,frame, prev_dist = None):
-    """Obtain the location of the middle point of the registered hand
 
-    Args:
-        points (list): list of points to obtain the middle point from
-        frame (cv image): cv frame with info on depth used to locate depth of the desired point
-
-    Returns:
-        float: Estimated distance of the middle of the hand 
+def socketList(n) -> list, tuple:
     """
-    
-    x = 0
-    y = 0
-    for point in points:
-        x=+ point[0]
-        y=+ point[1]
-    x = int(x/len(points))
-    y = int(y/len(points))
-
-    dist = int((frame[x,y])/10)
-    return dist,[x,y],prev_dist
-
-def socketList(n):
-    """Create n ammount of UDP sockets
+    Crea una n cantidad de sockets UDP
 
     Args:
-        n (int): number of sockets to create
+        n (int): Núm. de sockets a crear
 
     Returns:
-        list tuple: socket and port lists
+        list, tupla: Listas de sockets y puertos
     """
     #List of udp connections
     SKs =[]
@@ -46,26 +26,30 @@ def socketList(n):
         SAPs.append(serverAddPort)
     return SKs,SAPs
 
-def setSocket(port):
-    """Create a UDP Socket conection to transmit data to unity
+
+def setSocket(port) -> Socket, tuple:
+    """
+    Crea una conexión con el socket UDP para transmitir datos a Unity
 
     Returns:
-        socket,tuple: socket port and tuple with ip and port
+        socket, tupla: Puerto de socket y tupla con IP y puerto 
     """
     sk = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     #port to send to (ip, port)
     serverPort = ("127.0.0.1", port)
     return sk,serverPort
 
-def location_Error_Filter (x,y):
-    """Reduce the location of x & y to avoid error
+
+def location_Error_Filter (x,y) -> tuple:
+    """
+    Reduce la localización de X & Y para prevenir un error
 
     Args:
-        x (int): locaiton x of center
-        y (int): location y of center
+        x (int): Loc. X del centro
+        y (int): Loc. Y del centro
 
     Returns:
-        tuple: location x & y modified.
+        tupla: Localización X & Y modificada
     """
     if x >= 480:
         x = 479
@@ -73,29 +57,34 @@ def location_Error_Filter (x,y):
         y=478
     return x,y
 
-def write_File(file_loc, locations,unity_h,dist,gesture):
-    """Write the data into the specified txt file in the apropriate folder
+
+def write_File(file_loc, locations,unity_h,dist,gesture) -> void:
+    """
+    Escribe datos en el archivo .txt especificado en el folder apropiado
 
     Args:
-        file_loc (string): location to store the txt file
-        locations (list): list of locations of detected hand points
-        unity_h (int): inverted y pixels for unity recognition
-        dist (int): height of the hand detected by the depth sensor
-        gesture(str): interpretated gesture
+        file_loc (string): Path en el que se almacenará el archivo .txt
+        locations (list): Lista de localizaciones de puntos de mano detectados
+        unity_h (int): Píxeles Y invertidos para el reconocimiento en Unity
+        dist (int): Altura de la mano detectada por el sensor de profundidad
+        gesture(str): Gesto interpretado
     """
     with open(file_loc,"w") as file: #Save the info in the corresponding file
         for loc in locations:
             file.write(f"{loc[0]},{unity_h - loc[1]},{loc[2]}\n")
         file.write(f"{dist}\n{gesture}")
 
-def gesture_interpretor (landMarks)-> str:
-    """returns interpretation of the gesture based on the results obtained by the Finger detector class
+
+def gesture_interpretor (landMarks) -> str:
+    """
+    Retorna interpretación del gesto basándose en los resultados obtenidos por
+    la clase de detección del dedo
 
     Args:
-        landMarks (list): list of detected landmarks
+        landMarks (list): Lista de marcas detectadas
 
     Returns:
-        str: Interpretation based on criteria
+        str: Interpretación basada en criterios
     """
 
     fd_obj = fd.Finger_detector()
@@ -122,16 +111,18 @@ def gesture_interpretor (landMarks)-> str:
 
     return ""
 
-def saveData(hand,depth_frame,name,n):
-    """Record hand point location and overall distance from camera to a specific file in a corresponding file.
-    As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not
-    overwhelm the storage.
+
+def saveData(hand,depth_frame,name,n) -> void:
+    """
+    Registra la localización del punto de la mano y la distancia general desde la cámra a un archivo específico
+    Tan pronto el ciclo alcanza el límite que el archivo previo con la misma 'n' será reemplazado 
+    con datos nuevos para no abrumar el almacenamiento
 
     Args:
-        hand (list): list of info of the selected hand
-        depth_frame (frame): image frame of camera depth perseption
-        name (string): name of the Folder to safe the file to
-        n (int): iteration of the file
+        hand (list): Lista de info. de la mano seleccionada
+        depth_frame (frame): Imagen de la percepción de profundidad de la cámara
+        name (string): Nombre del folder en el que se guardará el archivo
+        n (int): Iteración del archivo
     """
     height = 1200 #Height used to invert the Y axis for unity
 
@@ -151,14 +142,16 @@ def saveData(hand,depth_frame,name,n):
 
     write_File(location,lmlst,height,dist, gesture) 
 
-def filter_Hand_Info(hands:list):
-    """Extract only the location of the points of interes and the center of the hand
+
+def filter_Hand_Info(hands:list) -> list:
+    """
+    Extrae solo la localización de los puntos de interés y el centro de la mano
 
     Args:
-        hands (list): original list of data from detected hands
+        hands (list): Lista original de datos de las manos detectadas
 
     Returns:
-        list: reduced list containing only list of points and location of the center
+        list: Lista reducida conteniendo solo la lista de puntos y la loc. del centro
     """
     result = []
     temp = {"lmList":None,"center":None}
@@ -170,7 +163,8 @@ def filter_Hand_Info(hands:list):
 
     return result
 
-def main(n,LIMIT=500,image=False):
+
+def main(n,LIMIT=500,image=False) -> void:
     dc = dca.DepthCamera() #Depth camara access object
 
     threads = []#List of threads for each hand
@@ -213,6 +207,7 @@ def main(n,LIMIT=500,image=False):
         key = cv2.waitKey(1)
         if key == 32: break #Close program if SPACEBAR is pressed
     print("\nProcess aborted...")
+
 
 if __name__ == "__main__":
     main(4,100,False)
