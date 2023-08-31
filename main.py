@@ -73,6 +73,20 @@ def location_Error_Filter (x,y):
         y=478
     return x,y
 
+def write_File(file_loc, locations,unity_h,dist):
+    """Write the data into the specified txt file in the apropriate folder
+
+    Args:
+        file_loc (string): location to store the txt file
+        locations (list): list of locations of detected hand points
+        unity_h (int): inverted y pixels for unity recognition
+        dist (int): height of the hand detected by the depth sensor
+    """
+    with open(file_loc,"w") as file: #Save the info in the corresponding file
+        for loc in locations:
+            file.write(f"{loc[0]},{unity_h - loc[1]},{loc[2]}\n")
+        file.write(str(dist))
+
 def saveData(hand,depth_frame,name,n):
     """Record hand point location and overall distance from camera to a specific file in a corresponding file.
     As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not
@@ -86,7 +100,7 @@ def saveData(hand,depth_frame,name,n):
     """
     height = 1200 #Height used to invert the Y axis for unity
     data = [] #List to store the hand points and depth information
-    #Get landmark list
+
     lmlst = hand["lmList"] #List of hand landmarks
     x,y = hand["center"] #Obtain the location of the center of the hand
     
@@ -99,10 +113,7 @@ def saveData(hand,depth_frame,name,n):
     
     location = f"./Hand_{name}/[{n}].txt" #Hand_A/[0]
 
-    with open(location,"w") as file: #Save the info in the corresponding file
-        for lm in lmlst:
-            file.write(f"{lm[0]},{height - lm[1]},{lm[2]}\n")
-        file.write(str(dist))
+    write_File(location,lmlst,height,dist)    
 
 def filter_Hand_Info(hands:list):
     """Extract only the location of the points of interes and the center of the hand
@@ -123,7 +134,7 @@ def filter_Hand_Info(hands:list):
 
     return result
 
-def main(n,LIMIT=500,image=None):
+def main(n,LIMIT=500,image=False):
     dc = dca.DepthCamera() #Depth camara access object
 
     threads = []#List of threads for each hand
@@ -136,14 +147,14 @@ def main(n,LIMIT=500,image=None):
     print("=============\nBootup complete, looking for hands...\n=============\n")
 
     while True:
-        ret, depth_frame, color_frame = dc.get_frame() #get the frame objects
-        hands, color_frame = detector.findHands(color_frame) #get the hands info list        
+        ret, depth_frame, color_frame = dc.get_frame() #Get the frame objects
+        hands, color_frame = detector.findHands(color_frame) #Get the hands info list        
         print(f"\rTracking {len(hands)}, hands.", end="")
 
         #Filter the info
         hands = filter_Hand_Info(hands)
 
-        #land mark values = (x,y,z) * 21 (total number of points we have per hand)
+        #Land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
             for i in range(len(hands)):
                 #For each hand detected store the data
@@ -153,7 +164,7 @@ def main(n,LIMIT=500,image=None):
                                            name,files[name]))
                 t.start()
                 threads.append(t)
-                #add one to the folder counter
+                #Add one to the folder counter
                 files[name] += 1
                 #Reset counter when it reaches the limit to start replaceing old files
                 if files[name] > LIMIT: files[name] = 0
@@ -168,5 +179,5 @@ def main(n,LIMIT=500,image=None):
     print("\nProcess aborted...")
 
 if __name__ == "__main__":
-    main(4,100,True)
+    main(4,100,False)
     print("Ending program")
