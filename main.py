@@ -73,7 +73,7 @@ def location_Error_Filter (x,y):
         y=478
     return x,y
 
-def write_File(file_loc, locations,unity_h,dist):
+def write_File(file_loc, locations,unity_h,dist,gesture):
     """Write the data into the specified txt file in the apropriate folder
 
     Args:
@@ -81,11 +81,46 @@ def write_File(file_loc, locations,unity_h,dist):
         locations (list): list of locations of detected hand points
         unity_h (int): inverted y pixels for unity recognition
         dist (int): height of the hand detected by the depth sensor
+        gesture(str): interpretated gesture
     """
     with open(file_loc,"w") as file: #Save the info in the corresponding file
         for loc in locations:
             file.write(f"{loc[0]},{unity_h - loc[1]},{loc[2]}\n")
-        file.write(str(dist))
+        file.write(f"{dist}\n{gesture}")
+
+def gesture_interpretor (landMarks)-> str:
+    """returns interpretation of the gesture based on the results obtained by the Finger detector class
+
+    Args:
+        landMarks (list): list of detected landmarks
+
+    Returns:
+        str: Interpretation based on criteria
+    """
+
+    fd_obj = fd.Finger_detector()
+    flex_list,pinch_flag = fd_obj.detect(landMarks)
+
+    if pinch_flag: return "Pinch"
+
+    #Fist if all True
+    if len(set(flex_list)) == 1 and set(flex_list): return "Fist"
+
+    #Open hand
+    if len(set(flex_list)) == 1 and not set(flex_list): return "Open hand"
+
+    #Open fingers (does not consider thumb)
+    if all (flex_list[i]==False for i in range(len(flex_list)-1)): return "Open fingers"
+
+    #Pointing 1 finger
+    if flex_list[0] and all(flex_list[i]==True for i in range(1,len(flex_list))):
+        return "Pointing"
+    
+    #L shape hand
+    if flex_list[0] and flex_list[1] and all(flex_list[i]==False for i in range(1,len(flex_list)-1)):
+        return "L"
+
+    return ""
 
 def saveData(hand,depth_frame,name,n):
     """Record hand point location and overall distance from camera to a specific file in a corresponding file.
@@ -99,7 +134,6 @@ def saveData(hand,depth_frame,name,n):
         n (int): iteration of the file
     """
     height = 1200 #Height used to invert the Y axis for unity
-    data = [] #List to store the hand points and depth information
 
     lmlst = hand["lmList"] #List of hand landmarks
     x,y = hand["center"] #Obtain the location of the center of the hand
@@ -113,7 +147,9 @@ def saveData(hand,depth_frame,name,n):
     
     location = f"./Hand_{name}/[{n}].txt" #Hand_A/[0]
 
-    write_File(location,lmlst,height,dist)    
+    gesture = gesture_interpretor(lmlst)
+
+    write_File(location,lmlst,height,dist, gesture) 
 
 def filter_Hand_Info(hands:list):
     """Extract only the location of the points of interes and the center of the hand
