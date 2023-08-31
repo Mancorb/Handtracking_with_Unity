@@ -129,7 +129,7 @@ class Finger_detector:
         return (fingers,pinch)
 
     
-    def middle(x1:int,x2:int,y1:int,y2:int) -> tuple:
+    def middle(self,x1:int,x2:int,y1:int,y2:int) -> tuple:
         """Estimar el punto medio entre dos puntos
     
         Args:
@@ -146,7 +146,7 @@ class Finger_detector:
         return x,y
 
     
-    def isInside(circle_x:int, circle_y:int, rad:int, x:int, y:int) -> bool:
+    def isInside(self,circle_x:int, circle_y:int, rad:int, x:int, y:int) -> bool:
         """Encuentra el punto que está dentro de un círculo estimado
     
         Args:
@@ -166,7 +166,7 @@ class Finger_detector:
             return False
 
     
-    def dist_2_points(x1:int, x2:int, y1:int, y2:int) -> int:
+    def dist_2_points(self,x1:int, x2:int, y1:int, y2:int) -> int:
         """Encuentra la distancia entre 2 puntos
     
         Args:
