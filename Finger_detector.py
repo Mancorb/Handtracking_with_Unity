@@ -181,8 +181,4 @@ class Finger_detector:
         # _/ (x2-x1)*2 + (y2-y1)*2
         return sqrt(pow((x2-x1),2) + pow((y2-y1),2))
 
-    def obtain_plot():
-        pass
-    #detector = htm.handDetector(detectionCon= 1)
-    #finger_detector(finger_loc,detector)
     

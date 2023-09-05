@@ -1,7 +1,7 @@
 import cv2
 from cvzone.HandTrackingModule import HandDetector
 import socket
-import threading
+from threading import Thread
 import Finger_detector as fd
 import DepthCamera as dca
 
@@ -88,7 +88,7 @@ def write_File(file_loc, locations,unity_h,dist,gesture):
             file.write(f"{loc[0]},{unity_h - loc[1]},{loc[2]}\n")
         file.write(f"{dist}\n{gesture}")
 
-def gesture_interpretor (landMarks)-> str:
+def gesture_interpretor (landMarks,fd_obj)-> str:
     """returns interpretation of the gesture based on the results obtained by the Finger detector class
 
     Args:
@@ -98,31 +98,34 @@ def gesture_interpretor (landMarks)-> str:
         str: Interpretation based on criteria
     """
 
-    fd_obj = fd.Finger_detector()
     flex_list,pinch_flag = fd_obj.detect(landMarks)
-
+    #True= finger streched, False = contracted
     if pinch_flag: return "Pinch"
 
-    #Fist if all True
-    if len(set(flex_list)) == 1 and set(flex_list): return "Fist"
-
     #Open hand
-    if len(set(flex_list)) == 1 and not set(flex_list): return "Open hand"
+    if len(set(flex_list)) == 1 and flex_list[0]: return "Open hand"
+
+    #Fist
+    if len(set(flex_list)) == 1 and not flex_list[0]: return "Fist"
 
     #Open fingers (does not consider thumb)
-    if all (flex_list[i]==False for i in range(len(flex_list)-1)): return "Open fingers"
+    if all (flex_list[i]==True for i in range(len(flex_list)-1)): return "Open fingers"
 
     #Pointing 1 finger
-    if flex_list[0] and all(flex_list[i]==True for i in range(1,len(flex_list))):
+    if flex_list[0]:
+        for i in range(1,len(flex_list)):
+            if not flex_list[i]:
+                pass
+            
         return "Pointing"
     
     #L shape hand
-    if flex_list[0] and flex_list[1] and all(flex_list[i]==False for i in range(1,len(flex_list)-1)):
+    if flex_list[0] and flex_list[1] and all(flex_list[i]==True for i in range(1,len(flex_list)-1)):
         return "L"
 
     return ""
 
-def saveData(hand,depth_frame,name,n):
+def saveData(hand,depth_frame,name,n,fd_obj,show = False):
     """Record hand point location and overall distance from camera to a specific file in a corresponding file.
     As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not
     overwhelm the storage.
@@ -147,9 +150,10 @@ def saveData(hand,depth_frame,name,n):
     
     location = f"./Hand_{name}/[{n}].txt" #Hand_A/[0]
 
-    gesture = gesture_interpretor(lmlst)
+    gesture = gesture_interpretor(lmlst,fd_obj)
 
     write_File(location,lmlst,height,dist, gesture) 
+    if show: print(f"Hand {name}: {gesture}")
 
 def filter_Hand_Info(hands:list):
     """Extract only the location of the points of interes and the center of the hand
@@ -170,8 +174,9 @@ def filter_Hand_Info(hands:list):
 
     return result
 
-def main(n,LIMIT=500,image=False):
+def main(n,LIMIT=500,image=False,verbose = False):
     dc = dca.DepthCamera() #Depth camara access object
+    fd_obj = fd.Finger_detector()
 
     threads = []#List of threads for each hand
 
@@ -195,9 +200,9 @@ def main(n,LIMIT=500,image=False):
             for i in range(len(hands)):
                 #For each hand detected store the data
                 name = files[i]
-                t = threading.Thread(target=saveData,
+                t = Thread(target=saveData,
                                      args=(hands[i],depth_frame,
-                                           name,files[name]))
+                                           name,files[name],fd_obj,verbose))
                 t.start()
                 threads.append(t)
                 #Add one to the folder counter
@@ -215,5 +220,5 @@ def main(n,LIMIT=500,image=False):
     print("\nProcess aborted...")
 
 if __name__ == "__main__":
-    main(4,100,False)
+    main(1,100,True,True)
     print("Ending program")
