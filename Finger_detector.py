@@ -78,24 +78,9 @@ def dist_2_points(x1:int, x2:int, y1:int, y2:int):
     return sqrt(pow((x2-x1),2) + pow((y2-y1),2))
 
 def thumb_contracted(hand_x, hand_y, thumb_x, thumb_y):
-    rad = 35
+    rad = 20
     x,y = middle(hand_x,thumb_x,hand_y,thumb_y)
     return not isInside(x,y,rad,thumb_x,thumb_y)
-
-def dist_2_points(x1:int, x2:int, y1:int, y2:int):
-    """This method returns the distance between two points.
-
-    Args:
-        x1 (int): location x of first point
-        x2 (int): location x of second point
-        y1 (int): location y of first point
-        y2 (int): location y of second point
-
-    Returns:
-        int: result as an int
-    """
-    # _/ (x2-x1)*2 + (y2-y1)*2
-    return sqrt(pow((x2-x1),2) + pow((y2-y1),2))
 
 def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bool):
     """Detect if the hand is pitching based on the distance of the thumb and the index finger
@@ -124,7 +109,6 @@ def detect_pinch(x1:int,y1:int,x2:int,y2:int,x3:int,y3:int, index:bool, thumb:bo
     
     return False
     
-
 
 def finger_detector(locations, detect, camara, show = False):
     while True:
@@ -161,11 +145,11 @@ def finger_detector(locations, detect, camara, show = False):
                                  fingers[0],
                                  fingers[-1])
 
-        if show and not fingers[-1]:#Draw line between point 5 and 3 as well as a circle in the middle point to see if it is contracted or not
+        if show:#Draw line between point 5 and 3 as well as a circle in the middle point to see if it is contracted or not
             cv2.line(img, (hand_x,hand_y), (thumb_x,thumb_y), color=(0,255,0), thickness=1)
-            cv2.circle(img, middle(hand_x,thumb_x,hand_y,thumb_y), radius=35, color=(255, 0, 0), thickness=1)
+            cv2.circle(img, middle(hand_x,thumb_x,hand_y,thumb_y), radius=20, color=(255, 0, 0), thickness=1)
             cv2.imshow("Image", img)
-            print(f"{fingers} Pinch: {pinch}")
+            print(f"\r{fingers} Pinch: {pinch}", end="")
 
         if cv2.waitKey(1) == 32:
             break
@@ -180,4 +164,4 @@ detector = htm.handDetector(detectionCon= 1)
             #(tip, bottom, middle)
 finger_loc = [(8,5,6),(12,9,10),(16,13,14),(20,17,18)]
 
-finger_detector(finger_loc,detector,cap, False)
+finger_detector(finger_loc,detector,cap, True)

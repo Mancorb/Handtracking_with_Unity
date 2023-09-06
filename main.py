@@ -1,7 +1,7 @@
 import pyrealsense2 as rs
 import numpy as np
 import cv2
-from cvzone.HandTrackingModule import HandDetector
+import HandTrackingModule as htm
 import socket
 import threading
 
@@ -126,7 +126,10 @@ def saveData(hand,depth_frame,name,n):
 def main(n,image=None,):
     dc = DepthCamera() #webcam access object
     threads = []#list of threads for each hand
-    detector = HandDetector(maxHands=n, detectionCon=0.8) #Hand detector object
+    detector = htm.handDetector(maxHands=n) #Hand detector object
+    
+    
+    
     #The first 4 elements in the dictionary are the names of the files and the last 4 elements of dictionary are numbers used to obtain the names of the first 4 elements of the diccionary as if it were a list
     files={"A":0,"B":0,"C":0,"D":0,0:"A",1:"B",2:"C",3:"D"}#Folder names and # of files counters and a "list of all the dictionary options"
     LIMIT = 20
