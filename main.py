@@ -24,14 +24,14 @@ def main(n,LIMIT=500,image=False,verbose = False):
         print(f"\rTracking {len(hands)}, hands.", end="")
 
         #Filter the info
-        hands = filter_Hand_Info(hands)
+        hands = _filter_Hand_Info(hands)
 
         #Land mark values = (x,y,z) * 21 (total number of points we have per hand)
         if hands:
             for i in range(len(hands)):
                 #For each hand detected store the data
                 name = files[i]
-                t = Thread(target=saveData,
+                t = Thread(target=_saveData,
                                      args=(hands[i],depth_frame,
                                            name,files[name],fd_obj,verbose))
                 t.start()
@@ -51,30 +51,7 @@ def main(n,LIMIT=500,image=False,verbose = False):
     print("\nProcess aborted...")
 
 
-def getDistance(points,frame, prev_dist = None):
-    """Obtain the location of the middle point of the registered hand
-
-    Args:
-        points (list): list of points to obtain the middle point from
-        frame (cv image): cv frame with info on depth used to locate depth of the desired point
-
-    Returns:
-        float: Estimated distance of the middle of the hand 
-    """
-    
-    x = 0
-    y = 0
-    for point in points:
-        x=+ point[0]
-        y=+ point[1]
-    x = int(x/len(points))
-    y = int(y/len(points))
-
-    dist = int((frame[x,y])/10)
-    return dist,[x,y],prev_dist
-
-
-def socketList(n):
+def _socketList(n):
     """Create n ammount of UDP sockets
 
     Args:
@@ -88,13 +65,13 @@ def socketList(n):
     SAPs = []
     #Assign each a different port to comunicate to
     for i in range(n):
-        sk, serverAddPort = setSocket(5001+i)
+        sk, serverAddPort = _setSocket(5001+i)
         SKs.append(sk)
         SAPs.append(serverAddPort)
     return SKs,SAPs
 
 
-def setSocket(port):
+def _setSocket(port):
     """Create a UDP Socket conection to transmit data to unity
 
     Returns:
@@ -106,7 +83,7 @@ def setSocket(port):
     return sk,serverPort
 
 
-def location_Error_Filter (x,y):
+def _location_Error_Filter (x,y):
     """Reduce the location of x & y to avoid error
 
     Args:
@@ -139,7 +116,7 @@ def write_File(file_loc, locations,unity_h,dist,gesture):
         file.write(f"{dist}\n{gesture}")
 
 
-def gesture_interpretor (landMarks,fd_obj)-> str:
+def _gesture_interpretor (landMarks,fd_obj)-> str:
     """returns interpretation of the gesture based on the results obtained by the Finger detector class
 
     Args:
@@ -177,7 +154,7 @@ def gesture_interpretor (landMarks,fd_obj)-> str:
     return ""
 
 
-def saveData(hand,depth_frame,name,n,fd_obj,show = False):
+def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
     """Record hand point location and overall distance from camera to a specific file in a corresponding file.
     As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not
     overwhelm the storage.
@@ -193,7 +170,7 @@ def saveData(hand,depth_frame,name,n,fd_obj,show = False):
     lmlst = hand["lmList"] #List of hand landmarks
     x,y = hand["center"] #Obtain the location of the center of the hand
     
-    x,y = location_Error_Filter(x,y)
+    x,y = _location_Error_Filter(x,y)
 
     try:
         dist = depth_frame[x,y] #Get the estimated distence of the center of the hand from the camera            
@@ -202,13 +179,13 @@ def saveData(hand,depth_frame,name,n,fd_obj,show = False):
     
     location = f"./Hand_{name}/[{n}].txt" #Hand_A/[0]
 
-    gesture = gesture_interpretor(lmlst,fd_obj)
+    gesture = _gesture_interpretor(lmlst,fd_obj)
 
     write_File(location,lmlst,height,dist, gesture) 
     if show: print(f"Hand {name}: {gesture}")
 
 
-def filter_Hand_Info(hands:list):
+def _filter_Hand_Info(hands:list):
     """Extract only the location of the points of interes and the center of the hand
 
     Args:
@@ -229,5 +206,5 @@ def filter_Hand_Info(hands:list):
 
 
 if __name__ == "__main__":
-    main(1,100,True,True)
+    main(1,100)
     print("Ending program")
