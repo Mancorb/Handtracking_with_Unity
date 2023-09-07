@@ -1,5 +1,5 @@
 import cv2
-from cvzone.HandTrackingModule import HandDetector
+import mediapipe as mp
 import socket
 from threading import Thread
 import Finger_detector as fd
@@ -11,22 +11,21 @@ def main(n,LIMIT=500,image=False,verbose = False):
 
     threads = []#List of threads for each hand
 
-    detector = HandDetector(maxHands=n, detectionCon=0.8) #Hand detector object
+    mp_hands = mp.solutions.hands #Hand detector object
+    detector = mp_hands.Hands(max_num_hands=n, min_detection_confidence=0.8)
 
     #The first 4 elements in the dictionary are the names of the files and the last 4 elements of dictionary are numbers used to obtain the names of the first 4 elements of the diccionary as if it were a list
     files={"A":0,"B":0,"C":0,"D":0,0:"A",1:"B",2:"C",3:"D"}#Folder names and # of files counters and a "list of all the dictionary options"
 
-    print("=============\nBootup complete, looking for hands...\n=============\n")
 
     while True:
         ret, depth_frame, color_frame = dc.get_frame() #Get the frame objects
-        hands, color_frame = detector.findHands(color_frame) #Get the hands info list        
-        print(f"\rTracking {len(hands)}, hands.", end="")
 
-        #Filter the info
-        hands = _filter_Hand_Info(hands)
+        hands = _get_locations_list(color_frame,detector,mp_hands)
 
-        #Land mark values = (x,y,z) * 21 (total number of points we have per hand)
+        #print(f"\rTracking {len(hands)}, hands.", end="")
+        #Land mark values = (x,y) * 21 (total number of points we have per hand)
+
         if hands:
             for i in range(len(hands)):
                 #For each hand detected store the data
@@ -49,6 +48,39 @@ def main(n,LIMIT=500,image=False,verbose = False):
         key = cv2.waitKey(1)
         if key == 32: break #Close program if SPACEBAR is pressed
     print("\nProcess aborted...")
+
+
+def _get_locations_list (image,detector,hand_obj) ->list:
+    """Method that returns the location of found landmarks
+
+    Args:
+        hand_obj(mediapipe obj): object with all captured data
+        image (numpy.ndarray): image captured by the camara
+        detector (mediapipe.python.solutions.hands.Hands): Information from the detection algorithim
+
+    Returns:
+        list: List of landmarks
+    """
+    #hight and width of the image
+    height = image.shape[0]
+    width = image.shape[1]
+    results = detector.process(image)
+    hands_data=[]#list of landmark lists
+
+    if results.multi_hand_landmarks:#if a hand is found
+        for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):#for each hand found
+            temp = []
+            for i in range(21):#obtain ONLY x and Y locations
+                res = hand_landmarks.landmark[hand_obj.HandLandmark(i).value]
+
+                #number is multiplied by the width and hight to get the location within the image
+                x = int(res.x*width)
+                y = int(res.y*height)
+
+                temp.append([x,y])
+            hands_data.append(temp)
+    
+    return hands_data
 
 
 def _socketList(n):
@@ -167,10 +199,8 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
     """
     height = 1200 #Height used to invert the Y axis for unity
 
-    lmlst = hand["lmList"] #List of hand landmarks
-    x,y = hand["center"] #Obtain the location of the center of the hand
-    
-    x,y = _location_Error_Filter(x,y)
+    #Obtain the location of the center of the hand
+    x,y = _location_Error_Filter( fd_obj._middle(hand[9][0],hand[0][0],hand[9][1],hand[0][1]) )
 
     try:
         dist = depth_frame[x,y] #Get the estimated distence of the center of the hand from the camera            
@@ -179,32 +209,14 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
     
     location = f"./Hand_{name}/[{n}].txt" #Hand_A/[0]
 
-    gesture = _gesture_interpretor(lmlst,fd_obj)
+    gesture = _gesture_interpretor(hand,fd_obj)
 
-    write_File(location,lmlst,height,dist, gesture) 
+    write_File(location,hand,height,dist, gesture) 
     if show: print(f"Hand {name}: {gesture}")
 
 
-def _filter_Hand_Info(hands:list):
-    """Extract only the location of the points of interes and the center of the hand
-
-    Args:
-        hands (list): original list of data from detected hands
-
-    Returns:
-        list: reduced list containing only list of points and location of the center
-    """
-    result = []
-    temp = {"lmList":None,"center":None}
-
-    for hand in hands:
-        temp["lmList"] = hand["lmList"]
-        temp["center"] = hand["center"]
-        result.append(temp)
-
-    return result
 
 
 if __name__ == "__main__":
-    main(1,100)
+    main(1,100,image=True)
     print("Ending program")
