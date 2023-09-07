@@ -115,16 +115,16 @@ def _setSocket(port):
     return sk,serverPort
 
 
-def _location_Error_Filter (x,y):
-    """Reduce the location of x & y to avoid error
+def _location_Error_Filter (locations):
+    """Filter error causing values for depth detection
 
     Args:
-        x (int): locaiton x of center
-        y (int): location y of center
+        locations (tuple): x,y locations of the middle point
 
     Returns:
-        tuple: location x & y modified.
+        tuple: fixed locations
     """
+    x,y = locations
     if x >= 480:
         x = 479
     if y >= 479:
@@ -144,7 +144,7 @@ def write_File(file_loc, locations,unity_h,dist,gesture):
     """
     with open(file_loc,"w") as file: #Save the info in the corresponding file
         for loc in locations:
-            file.write(f"{loc[0]},{unity_h - loc[1]},{loc[2]}\n")
+            file.write(f"{loc[0]},{unity_h - loc[0]},{loc[1]}\n")
         file.write(f"{dist}\n{gesture}")
 
 
@@ -200,7 +200,7 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
     height = 1200 #Height used to invert the Y axis for unity
 
     #Obtain the location of the center of the hand
-    x,y = _location_Error_Filter( fd_obj._middle(hand[9][0],hand[0][0],hand[9][1],hand[0][1]) )
+    x,y = _location_Error_Filter(fd_obj._middle(hand[9][0],hand[0][0],hand[9][1],hand[0][1]))
 
     try:
         dist = depth_frame[x,y] #Get the estimated distence of the center of the hand from the camera            
@@ -212,11 +212,11 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
     gesture = _gesture_interpretor(hand,fd_obj)
 
     write_File(location,hand,height,dist, gesture) 
-    if show: print(f"Hand {name}: {gesture}")
+    if show: print(f"\rHand {name}: {gesture}", end="")
 
 
 
 
 if __name__ == "__main__":
-    main(1,100,image=True)
+    main(1,100,image=True,verbose=True)
     print("Ending program")

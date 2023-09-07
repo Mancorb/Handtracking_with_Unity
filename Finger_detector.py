@@ -27,23 +27,23 @@ class Finger_detector:
         if len(lmList)!=0:
             for i in locations:
                 #[(punta, base, medio)]
-                x1,x2 =lmList[i[0]][1],lmList[i[1]][1]
-                y1,y2 =lmList[i[0]][2],lmList[i[1]][2]
-                tx,ty =lmList[i[2]][1],lmList[i[2]][2]
+                x1,x2 =lmList[i[0]][0],lmList[i[1]][0]
+                y1,y2 =lmList[i[0]][1],lmList[i[1]][1]
+                tx,ty =lmList[i[2]][0],lmList[i[2]][1]
     
                 fingers[counter] = self._fingerStraight(x1,x2,y1,y2,tx,ty)
     
                 counter += 1
             
             #Encontrar el pulgar
-            hand_x, thumb_x=lmList[5][1],lmList[3][1] #Localización de X del punto 5,localización de X del punto 3
-            hand_y, thumb_y=lmList[5][2],lmList[3][2] #Lo mismo, pero la localización en Y
+            hand_x, thumb_x=lmList[5][0],lmList[3][0] #Localización de X del punto 5,localización de X del punto 3
+            hand_y, thumb_y=lmList[5][1],lmList[3][1] #Lo mismo, pero la localización en Y
                 
             fingers[-1] = self._thumb_contracted(hand_x,hand_y,thumb_x,thumb_y) #Asigna el resultado a un arreglo
                 
-            pinch = self._detect_pinch(lmList[4][1],lmList[4][2],
-                                 lmList[8][1],lmList[8][2],
-                                 lmList[3][1],lmList[3][2],
+            pinch = self._detect_pinch(lmList[4][0],lmList[4][1],
+                                 lmList[8][0],lmList[8][1],
+                                 lmList[3][0],lmList[3][1],
                                  fingers[0],
                                  fingers[-1])
             
