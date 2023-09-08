@@ -192,10 +192,10 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
     overwhelm the storage.
 
     Args:
-        hand (list): list of info of the selected hand
-        depth_frame (frame): image frame of camera depth perseption
-        name (string): name of the Folder to safe the file to
-        n (int): iteration of the file
+        hand (list): Lista de info. de la mano seleccionada
+        depth_frame (frame): Imagen de la percepción de profundidad de la cámara
+        name (string): Nombre del folder en el que se guardará el archivo
+        n (int): Iteración del archivo
     """
     height = 1200 #Height used to invert the Y axis for unity
 
