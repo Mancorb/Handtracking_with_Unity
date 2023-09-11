@@ -4,6 +4,7 @@ import socket
 from threading import Thread
 import Finger_detector as fd
 import DepthCamera as dca
+import DeleteFiles
 
 def main(n,LIMIT=500,image=False,verbose = False):
     dc = dca.DepthCamera() #Depth camara access object
@@ -162,28 +163,15 @@ def _gesture_interpretor (landMarks,fd_obj)-> str:
     #True= finger streched, False = contracted
     if pinch_flag: return "Pinch"
 
-    #Open hand
-    if len(set(flex_list)) == 1 and flex_list[0]: return "Open hand"
-
-    #Fist
-    if len(set(flex_list)) == 1 and not flex_list[0]: return "Fist"
-
-    #Open fingers (does not consider thumb)
-    if all (flex_list[i]==True for i in range(len(flex_list)-1)): return "Open fingers"
-
-    #Pointing 1 finger
-    if flex_list[0]:
-        for i in range(1,len(flex_list)):
-            if not flex_list[i]:
-                pass
-            
-        return "Pointing"
-    
-    #L shape hand
-    if flex_list[0] and flex_list[1] and all(flex_list[i]==True for i in range(1,len(flex_list)-1)):
+        #L shape hand
+    elif flex_list[0] and flex_list[1] and all(flex_list[i]==False for i in range(1,len(flex_list)-1)):
         return "L"
+    
+    
+    if flex_list[-1] and all(flex_list[i] == False for i  in range(len(flex_list)-1)):
+        return "Thumb"
 
-    return ""
+    return "                "
 
 
 def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
@@ -218,5 +206,12 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
 
 
 if __name__ == "__main__":
-    main(1,100,image=True,verbose=True)
-    print("Ending program")
+    try:
+        print("[+] Bootup complete!!!")
+        main(1,100,image=False,verbose=True)
+        print("\n[+] Ending program")
+    except KeyboardInterrupt:
+        print("\n[-]Program Interrupted by user")
+    
+    DeleteFiles.delete_it_all()
+

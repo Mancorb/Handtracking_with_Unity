@@ -11,7 +11,7 @@ def delete_files_in_directory(directory_path):
    except OSError:
      print("Error occurred while deleting files.")
 
-if __name__ == "__main__":
+def delete_it_all():
   directory_path_list = ["A","B","C","D"]
   for letter in directory_path_list:
       delete_files_in_directory("hand_"+letter)
