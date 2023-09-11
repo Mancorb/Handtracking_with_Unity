@@ -43,7 +43,7 @@ class Finger_detector:
                 
             pinch = self._detect_pinch(lmList[4][0],lmList[4][1],
                                  lmList[8][0],lmList[8][1],
-                                 lmList[3][0],lmList[3][1],
+                                 lmList[2][0],lmList[2][1],
                                  fingers[0],
                                  fingers[-1])
             
@@ -93,7 +93,7 @@ class Finger_detector:
         Returns:
             bool: Retorna True si el pulgar no está extendido, False en caso contrario 
         """
-        rad = 35
+        rad = 25
         x,y = self._middle(hand_x,thumb_x,hand_y,thumb_y)
         return not self._isInside(x,y,rad,thumb_x,thumb_y)
 
@@ -119,7 +119,7 @@ class Finger_detector:
     
         #si el índice está contraido y el pulgar no
         if (not index and thumb):
-            d1 = self._dist_2_points(x1,x3,y1,y3) #Distancia entre punto 4 y 3
+            d1 = self._dist_2_points(x1,x3,y1,y3) #Distancia entre punto 4 y 2
             d2 = self._dist_2_points(x1,x2,y1,y2) #Distancia entre punto 4 y 8
     
             if d1>d2:
