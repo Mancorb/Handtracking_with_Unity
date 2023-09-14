@@ -218,5 +218,5 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
 
 
 if __name__ == "__main__":
-    main(1,100,image=True,verbose=True)
+    main(1,10000,image=True,verbose=False)
     print("Ending program")
