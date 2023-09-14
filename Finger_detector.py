@@ -69,7 +69,7 @@ class Finger_detector:
         Returns:
             bool: True si el dedo se encuentra derecho, False si el dedo no está derecho
         """
-        rad = 20
+        rad = 15
         x,y= self._middle(x1,x2,y1,y2)
         mid = self._isInside(x,y,rad,tx,ty)
         base = self._isInside(x,y,rad,x1,y1)

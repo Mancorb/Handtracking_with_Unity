@@ -164,12 +164,20 @@ def _gesture_interpretor (landMarks,fd_obj)-> str:
     if pinch_flag: return "Pinch"
 
         #L shape hand
-    elif flex_list[0] and flex_list[1] and all(flex_list[i]==False for i in range(1,len(flex_list)-1)):
+    if flex_list[0] and flex_list[1]:
+        for i in range(1,len(flex_list)-1):
+            if flex_list[i]==True:
+                break
         return "L"
     
     
-    if flex_list[-1] and all(flex_list[i] == False for i  in range(len(flex_list)-1)):
-        return "Thumb"
+    #Pointing 1 finger
+    if flex_list[0]:
+        for i in range(1,len(flex_list)):
+            if not flex_list[i]:
+                break
+            
+        return "Pointing"
 
     return "                "
 
