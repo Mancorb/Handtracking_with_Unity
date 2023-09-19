@@ -9,17 +9,19 @@ def main(n,LIMIT=500,image=False,verbose = False):
     dc = dca.DepthCamera() #Depth camara access object
     fd_obj = fd.Finger_detector()
 
-    threads = []#List of threads for each hand
+    threads = []#Lista de hilos para cada mano
 
     mp_hands = mp.solutions.hands #Hand detector object
     detector = mp_hands.Hands(max_num_hands=n, min_detection_confidence=0.8)
 
-    #The first 4 elements in the dictionary are the names of the files and the last 4 elements of dictionary are numbers used to obtain the names of the first 4 elements of the diccionary as if it were a list
-    files={"A":0,"B":0,"C":0,"D":0,0:"A",1:"B",2:"C",3:"D"}#Folder names and # of files counters and a "list of all the dictionary options"
+    #Los primeros 4 elementos en el diccionario son los nombres de los archivos y los últimos 4 elementos del diccionario son 
+    #núms. utilizados para obtener los nombres de los primeros 4 elementos del dicc. como si fuése una lista
+    files={"A":0,"B":0,"C":0,"D":0,0:"A",1:"B",2:"C",3:"D"}
+    #Nombres de carpeta y no. de contadores de archivos y una "lista de todas las opciones de diccionario"
 
 
     while True:
-        ret, depth_frame, color_frame = dc.get_frame() #Get the frame objects
+        ret, depth_frame, color_frame = dc.get_frame() #Obtiene los objs. del frame
 
         hands = _get_locations_list(color_frame,detector,mp_hands)
 
@@ -28,52 +30,53 @@ def main(n,LIMIT=500,image=False,verbose = False):
 
         if hands:
             for i in range(len(hands)):
-                #For each hand detected store the data
+                #Por cada mano detectada almacena los datos
                 name = files[i]
                 t = Thread(target=_saveData,
                                      args=(hands[i],depth_frame,
                                            name,files[name],fd_obj,verbose))
                 t.start()
                 threads.append(t)
-                #Add one to the folder counter
+                #Añade uno al contador de la carpeta
                 files[name] += 1
-                #Reset counter when it reaches the limit to start replaceing old files
+                #Resetea el contrador cuando alcanza el límite y empieza a reemplazar archivos viejos
                 if files[name] > LIMIT: files[name] = 0
 
-        for t in threads: t.join() #Join all the threads
+        for t in threads: t.join() #Une todos los hilos
         
-        #Show the current image of the camera
+        #Mostrar la img. actual captada por la cámara
         if image: cv2.imshow("Image", color_frame)
 
         key = cv2.waitKey(1)
-        if key == 32: break #Close program if SPACEBAR is pressed
+        if key == 32: break #Cierra el programa si se presiona BARRA ESPACIADORA
     print("\nProcess aborted...")
 
 
-def _get_locations_list (image,detector,hand_obj) ->list:
-    """Method that returns the location of found landmarks
+def _get_locations_list (image,detector,hand_obj) -> list:
+    """
+    Función que retorna la localización de los puntos encontrados
 
     Args:
-        hand_obj(mediapipe obj): object with all captured data
-        image (numpy.ndarray): image captured by the camara
-        detector (mediapipe.python.solutions.hands.Hands): Information from the detection algorithim
+        hand_obj(mediapipe obj): Objeto con todos los datos capturados
+        image (numpy.ndarray): Imagen capturada por la cámara
+        detector (mediapipe.python.solutions.hands.Hands): Info proveniente del algoritmo de detección
 
     Returns:
-        list: List of landmarks
+        lista: Lista de puntos localizados
     """
-    #hight and width of the image
+    #Altura y ancho de la imagen
     height = image.shape[0]
     width = image.shape[1]
     results = detector.process(image)
-    hands_data=[]#list of landmark lists
+    hands_data=[]#Lista de listas de localizaciones
 
-    if results.multi_hand_landmarks:#if a hand is found
-        for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):#for each hand found
+    if results.multi_hand_landmarks:#En caso de que una mano sea encontrada
+        for hand_no, hand_landmarks in enumerate(results.multi_hand_landmarks):#por c/mano encontrada
             temp = []
-            for i in range(21):#obtain ONLY x and Y locations
+            for i in range(21):#Obtiene solo las localizaciones en X y Y
                 res = hand_landmarks.landmark[hand_obj.HandLandmark(i).value]
 
-                #number is multiplied by the width and hight to get the location within the image
+                #núm. es multiplicado por el ancho y altura para obtener la localización dentro de la imagen
                 x = int(res.x*width)
                 y = int(res.y*height)
 
@@ -84,18 +87,19 @@ def _get_locations_list (image,detector,hand_obj) ->list:
 
 
 def _socketList(n):
-    """Create n ammount of UDP sockets
+    """
+    Crea n cantidad de sockets UDP
 
     Args:
-        n (int): number of sockets to create
+        n (int): no. de sockets a crear
 
     Returns:
-        list tuple: socket and port lists
+        lista, tupla: Listas de sockets y puertos
     """
-    #List of udp connections
+    #Lista de conexiones UDP
     SKs =[]
     SAPs = []
-    #Assign each a different port to comunicate to
+    #Asigna a cada una un puerto diferente con el cual comunicarse
     for i in range(n):
         sk, serverAddPort = _setSocket(5001+i)
         SKs.append(sk)
@@ -104,10 +108,11 @@ def _socketList(n):
 
 
 def _setSocket(port):
-    """Create a UDP Socket conection to transmit data to unity
+    """
+    Crear un socket de conexión UDP para transmitir datos a unity
 
     Returns:
-        socket,tuple: socket port and tuple with ip and port
+        socket,tuple: Lista de sockets del puerto y tupla con IP y puerto
     """
     sk = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
     #port to send to (ip, port)
@@ -116,13 +121,14 @@ def _setSocket(port):
 
 
 def _location_Error_Filter (locations):
-    """Filter error causing values for depth detection
+    """
+    Fitlra valores con errores causados en la detección de profundidad
 
     Args:
-        locations (tuple): x,y locations of the middle point
+        locations (tupla): Locs. x, y del punto medio
 
     Returns:
-        tuple: fixed locations
+        tupla: Locs. fijas
     """
     x,y = locations
     if x >= 480:
@@ -133,45 +139,47 @@ def _location_Error_Filter (locations):
 
 
 def write_File(file_loc, locations,unity_h,dist,gesture):
-    """Write the data into the specified txt file in the apropriate folder
+    """
+    Escribe los datos en el archivo txt especificado en la carpeta apropiada
 
     Args:
-        file_loc (string): location to store the txt file
-        locations (list): list of locations of detected hand points
-        unity_h (int): inverted y pixels for unity recognition
-        dist (int): height of the hand detected by the depth sensor
-        gesture(str): interpretated gesture
+        file_loc (string): Path en el que se almacenará el archivo txt
+        locations (list): Lista de locs. de los puntos de la mano detectados
+        unity_h (int): Píxeles Y invertidos para su reconocimiento en unity
+        dist (int): Altura de la mano detectada por el sensor de profundidad
+        gesture(str): Gesto interpretado
     """
-    with open(file_loc,"w") as file: #Save the info in the corresponding file
+    with open(file_loc,"w") as file: #Guarda la info. en el archivo correspondiente
         for loc in locations:
             file.write(f"{loc[0]},{unity_h - loc[0]},{loc[1]}\n")
         file.write(f"{dist}\n{gesture}")
 
 
 def _gesture_interpretor (landMarks,fd_obj)-> str:
-    """returns interpretation of the gesture based on the results obtained by the Finger detector class
+    """
+    Retorna la interpretación del gesto basándose en los resultados obtenidos por la clase Finger_detector
 
     Args:
-        landMarks (list): list of detected landmarks
+        landMarks (list): Lista de puntos de la mano detectados
 
     Returns:
-        str: Interpretation based on criteria
+        str: Interpretación basada en criterios
     """
 
     flex_list,pinch_flag = fd_obj.detect(landMarks)
-    #True= finger streched, False = contracted
+    #True= dedo estirado, False = contraido
     if pinch_flag: return "Pinch"
 
-    #Open hand
+    #Mano abierta
     if len(set(flex_list)) == 1 and flex_list[0]: return "Open hand"
 
-    #Fist
+    #Puño
     if len(set(flex_list)) == 1 and not flex_list[0]: return "Fist"
 
-    #Open fingers (does not consider thumb)
+    #Dedos abiertos (no toma en cuenta el pulgar)
     if all (flex_list[i]==True for i in range(len(flex_list)-1)): return "Open fingers"
 
-    #Pointing 1 finger
+    #Apuntando 1 dedo
     if flex_list[0]:
         for i in range(1,len(flex_list)):
             if not flex_list[i]:
@@ -179,7 +187,7 @@ def _gesture_interpretor (landMarks,fd_obj)-> str:
             
         return "Pointing"
     
-    #L shape hand
+    #Mano en forma de L
     if flex_list[0] and flex_list[1] and all(flex_list[i]==True for i in range(1,len(flex_list)-1)):
         return "L"
 
@@ -187,9 +195,13 @@ def _gesture_interpretor (landMarks,fd_obj)-> str:
 
 
 def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
-    """Record hand point location and overall distance from camera to a specific file in a corresponding file.
-    As soon as the loop reaches the limit the previous file with the same 'n' will be replaced with new data to not
-    overwhelm the storage.
+    """
+    Registra loc. de un punto de la mano y la distancia general de la cámara 
+    a un archivo específico en un path correspondiente
+    
+    Tan pronto como el ciclo alcanza su límite con el archivo previo,
+    con la misma 'n' serán reemplazados los
+    archivos viejos con datos nuevos para no abrumar el almacenamiento.
 
     Args:
         hand (list): Lista de info. de la mano seleccionada
@@ -197,13 +209,13 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
         name (string): Nombre del folder en el que se guardará el archivo
         n (int): Iteración del archivo
     """
-    height = 1200 #Height used to invert the Y axis for unity
+    height = 1200 #Altura utlizada para invertir el eje Y para unity
 
-    #Obtain the location of the center of the hand
+    #Obtiene la localización del centro de la mano
     x,y = _location_Error_Filter(fd_obj._middle(hand[9][0],hand[0][0],hand[9][1],hand[0][1]))
 
     try:
-        dist = depth_frame[x,y] #Get the estimated distence of the center of the hand from the camera            
+        dist = depth_frame[x,y] #Obtiene la distancia estimada del centro de la mano desde la cámara
     except Exception as e:
         print("Error")
     
