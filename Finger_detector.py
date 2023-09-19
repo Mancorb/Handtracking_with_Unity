@@ -80,7 +80,7 @@ class Finger_detector:
         else : return False
 
     
-    def _thumb_contracted(self, hand_x, hand_y, thumb_x, thumb_y) -> bool:
+    def _thumb_contracted(self, hand_x, hand_y, thumb_x, thumb_y,rad=15) -> bool:
         """
         Dibuja un círculo entre la mano y el pulgar para detectar si el pulgar está extendido o no
 
@@ -93,7 +93,6 @@ class Finger_detector:
         Returns:
             bool: Retorna True si el pulgar no está extendido, False en caso contrario 
         """
-        rad = 25
         x,y = self._middle(hand_x,thumb_x,hand_y,thumb_y)
         return not self._isInside(x,y,rad,thumb_x,thumb_y)
 
