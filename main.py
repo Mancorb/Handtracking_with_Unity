@@ -31,9 +31,14 @@ def main(n,LIMIT=500,image=False,verbose = False):
             for i in range(len(hands)):
                 #For each hand detected store the data
                 name = files[i]
-                t = Thread(target=_saveData,
-                                     args=(hands[i],depth_frame,
-                                           name,files[name],fd_obj,verbose))
+                #t = Thread(target=_saveData,
+                #                     args=(hands[i],depth_frame,
+                #                           name,files[name],fd_obj,verbose))
+            
+                #t = Thread(target=_send_Data, 
+                #                     args=(hands[i],sockets[i],depth_frame,
+                #                           height,saps[i]))
+                
                 t.start()
                 threads.append(t)
                 #Add one to the folder counter
@@ -211,6 +216,21 @@ def _saveData(hand,depth_frame,name,n,fd_obj,show = False):
     if show: print(f"\rHand {name}: {gesture}", end="")
 
 
+def _send_Data (hand,sk,depth_frame,height,SAP):
+    data = []
+    #get landmark list
+    lmlst = hand["lmList"]
+    loc = hand["center"]
+    
+    #get the estimated distence of the center of the hand from the camera            
+    dist = int((depth_frame[loc[1],loc[0]])/1)
+    
+    for lm in lmlst:
+        #Save the data with the oposite value since unity saves data oposite to open cv
+        data.extend([lm[0],height - lm[1],lm[2],dist])
+        
+    sk.sendto(str.encode(str(data)), SAP)
+    #print(f"-----\nsent: {data}\nto:{SAP}")
 
 
 if __name__ == "__main__":
