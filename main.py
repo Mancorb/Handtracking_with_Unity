@@ -38,9 +38,11 @@ def main(n,LIMIT=500,image=False,verbose = False):
                 #t = Thread(target=_send_Data, 
                 #                     args=(hands[i],sockets[i],depth_frame,
                 #                           height,saps[i]))
+                #t.start()
+                #threads.append(t)
+
+                _save_n_send(name,hands[i],depth_frame,files[name],fd_obj,verbose,sockets[i],height,saps[i])
                 
-                t.start()
-                threads.append(t)
                 #Add one to the folder counter
                 files[name] += 1
                 #Reset counter when it reaches the limit to start replaceing old files
