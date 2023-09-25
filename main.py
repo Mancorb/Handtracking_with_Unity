@@ -235,17 +235,15 @@ def _send_Data (hand,sk,depth_frame,height,SAP):
     #print(f"-----\nsent: {data}\nto:{SAP}")
 
 #========== LA FUNCIÓN DE ABAJO TODAVÍA ESTÁ EN ETAPA DE PRUEBAS============
-def _save_n_send (name, hands[i],depth_frame,files[name],fd_obj,verbose,sockets[i],height,saps[i]) -> void:
+def _save_n_send (name,hands,depth_frame,files,fd_obj,verbose,sockets,height,saps) -> void:
     t = Thread(target=_saveData,
-                args=(hands[i],depth_frame,
-                name,files[name],fd_obj,verbose))
+                args=(hands,depth_frame,name,files,fd_obj,verbose))
 
     t.start()
     threads.append(t)
             
     t = Thread(target=_send_Data, 
-                args=(hands[i],sockets[i],depth_frame,
-                height,saps[i]))
+                args=(hands,sockets,depth_frame,height,saps))
                 
     t.start()
     threads.append(t)
