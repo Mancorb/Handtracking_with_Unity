@@ -38,11 +38,9 @@ def main(n,LIMIT=500,image=False,verbose = False):
                 #t = Thread(target=_send_Data, 
                 #                     args=(hands[i],sockets[i],depth_frame,
                 #                           height,saps[i]))
-                #t.start()
-                #threads.append(t)
-
-                _save_n_send(name,hands[i],depth_frame,files[name],fd_obj,verbose,sockets[i],height,saps[i])
                 
+                t.start()
+                threads.append(t)
                 #Add one to the folder counter
                 files[name] += 1
                 #Reset counter when it reaches the limit to start replaceing old files
@@ -235,18 +233,22 @@ def _send_Data (hand,sk,depth_frame,height,SAP):
     #print(f"-----\nsent: {data}\nto:{SAP}")
 
 #========== LA FUNCIÓN DE ABAJO TODAVÍA ESTÁ EN ETAPA DE PRUEBAS============
-def _save_n_send (name,hands,depth_frame,files,fd_obj,verbose,sockets,height,saps) -> void:
+def _save_n_send (name, hands,depth_frame,files,fd_obj,verbose,sockets,height,saps,i,threads):
+    #call "i" of hands,sockets,saps
     t = Thread(target=_saveData,
-                args=(hands,depth_frame,name,files,fd_obj,verbose))
+                args=(hands[i],depth_frame,
+                name,files[name],fd_obj,verbose))
 
     t.start()
     threads.append(t)
             
     t = Thread(target=_send_Data, 
-                args=(hands,sockets,depth_frame,height,saps))
+                args=(hands[i],sockets[i],depth_frame,
+                height,saps[i]))
                 
     t.start()
     threads.append(t)
+    return threads
 
 
 if __name__ == "__main__":
