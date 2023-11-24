@@ -18,4 +18,4 @@ def delete_it_all():
   print("All files deleted successfully.")
 
 
-  delete_it_all()
+delete_files_in_directory("C:/Users/CIICCTE/Documents/proyect/Hand_A")
